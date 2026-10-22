@@ -1,0 +1,146 @@
+# Cenário agêntico: implementar funcionalidade lendo docstrings e dados em outro módulo.
+id = "agente.implementar-cupom"
+dificuldade = "dificil"
+max_turnos = 14
+ferramentas = ["listar_arquivos", "ler_arquivo", "escrever_arquivo", "rodar_testes", "finalizar"]
+tarefa = "Implemente `aplicar_cupom` e ajuste `total` em loja/carrinho.py seguindo as docstrings, até todos os testes passarem. Não altere os testes."
+checks = [
+  { tipo = "testes_passam", peso = 3 },
+  { tipo = "arquivos_intactos", caminhos = ["tests/test_carrinho.py", "loja/cupons.py"] },
+  { tipo = "finalizou" },
+]
+
+[arquivos]
+"loja/__init__.py" = ""
+"tests/__init__.py" = ""
+"loja/cupons.py" = '''
+# Cupons ativos.
+# tipo "percentual": valor em % sobre o subtotal. tipo "fixo": valor em reais.
+# minimo: subtotal mínimo (em reais) para o cupom valer.
+CUPONS = {
+    "BEMVINDO10": {"tipo": "percentual", "valor": 10, "minimo": 0},
+    "FIXO20": {"tipo": "fixo", "valor": 20, "minimo": 100},
+    "MEGA30": {"tipo": "percentual", "valor": 30, "minimo": 300},
+    "BRINDE50": {"tipo": "fixo", "valor": 50, "minimo": 0},
+}
+'''
+"loja/carrinho.py" = '''
+from loja.cupons import CUPONS
+
+
+class CupomInvalido(Exception):
+    pass
+
+
+class Carrinho:
+    def __init__(self):
+        self.itens = []  # (nome, preco_unitario, quantidade)
+        self.cupom = None
+
+    def adicionar(self, nome, preco, quantidade=1):
+        if preco < 0 or quantidade <= 0:
+            raise ValueError("item inválido")
+        self.itens.append((nome, preco, quantidade))
+
+    def subtotal(self):
+        return round(sum(p * q for _, p, q in self.itens), 2)
+
+    def aplicar_cupom(self, codigo):
+        """Aplica um cupom de CUPONS.
+
+        - O código não diferencia maiúsculas de minúsculas.
+        - Código inexistente ou subtotal abaixo do mínimo do cupom: levanta CupomInvalido.
+        - Só um cupom por carrinho: aplicar outro substitui o anterior.
+        """
+        raise NotImplementedError
+
+    def total(self):
+        """Subtotal menos o desconto do cupom (se houver). Nunca negativo. Arredondado em 2 casas."""
+        return self.subtotal()
+'''
+"tests/test_carrinho.py" = '''
+import unittest
+
+from loja.carrinho import Carrinho, CupomInvalido
+
+
+class TestCarrinho(unittest.TestCase):
+    def setUp(self):
+        self.c = Carrinho()
+        self.c.adicionar("caneca", 40, 2)
+        self.c.adicionar("camiseta", 70)
+
+    def test_sem_cupom(self):
+        self.assertEqual(self.c.total(), 150)
+
+    def test_percentual_sem_diferenciar_caixa(self):
+        self.c.aplicar_cupom("bemvindo10")
+        self.assertEqual(self.c.total(), 135)
+
+    def test_fixo(self):
+        self.c.aplicar_cupom("FIXO20")
+        self.assertEqual(self.c.total(), 130)
+
+    def test_minimo_nao_atingido(self):
+        with self.assertRaises(CupomInvalido):
+            self.c.aplicar_cupom("MEGA30")
+
+    def test_inexistente(self):
+        with self.assertRaises(CupomInvalido):
+            self.c.aplicar_cupom("XPTO")
+
+    def test_substitui_cupom(self):
+        self.c.aplicar_cupom("BEMVINDO10")
+        self.c.aplicar_cupom("FIXO20")
+        self.assertEqual(self.c.total(), 130)
+
+    def test_nunca_negativo(self):
+        c = Carrinho()
+        c.adicionar("adesivo", 30)
+        c.aplicar_cupom("BRINDE50")
+        self.assertEqual(c.total(), 0)
+
+    def test_percentual_arredonda(self):
+        c = Carrinho()
+        c.adicionar("caneta", 3.33, 3)
+        c.aplicar_cupom("BEMVINDO10")
+        self.assertEqual(c.total(), 8.99)
+'''
+
+[referencia]
+"loja/carrinho.py" = '''
+from loja.cupons import CUPONS
+
+
+class CupomInvalido(Exception):
+    pass
+
+
+class Carrinho:
+    def __init__(self):
+        self.itens = []
+        self.cupom = None
+
+    def adicionar(self, nome, preco, quantidade=1):
+        if preco < 0 or quantidade <= 0:
+            raise ValueError("item inválido")
+        self.itens.append((nome, preco, quantidade))
+
+    def subtotal(self):
+        return round(sum(p * q for _, p, q in self.itens), 2)
+
+    def aplicar_cupom(self, codigo):
+        dados = CUPONS.get(codigo.upper())
+        if dados is None or self.subtotal() < dados["minimo"]:
+            raise CupomInvalido(codigo)
+        self.cupom = dados
+
+    def total(self):
+        s = self.subtotal()
+        if self.cupom:
+            if self.cupom["tipo"] == "percentual":
+                s -= s * self.cupom["valor"] / 100
+            else:
+                s -= self.cupom["valor"]
+        return round(max(s, 0), 2)
+'''

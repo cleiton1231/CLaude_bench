@@ -1,0 +1,173 @@
+# Seguir instruções (estilo IFEval, em PT-BR): formato, limites, restrições combinadas.
+# Avaliação automática. A nota do caso é a fração (ponderada) de checks atendidos.
+
+suite = "instrucoes"
+categoria = "instrucoes"
+versao = 1
+
+[padrao]
+max_tokens = 400
+
+# ------------------------------------------------------------------ FÁCEIS
+[[caso]]
+id = "instrucoes.cinco-frutas"
+dificuldade = "facil"
+consistencia = true
+prompt = "Liste exatamente 5 frutas tropicais, uma por linha, sem numeração, sem marcadores e sem nenhum texto antes ou depois."
+checks = [
+  { tipo = "linhas", min = 5, max = 5 },
+  { tipo = "nao_regex", padrao = '^\s*(\d+[.)]|[-*•])' },
+]
+
+[[caso]]
+id = "instrucoes.sim-ou-nao"
+dificuldade = "facil"
+prompt = "Responda apenas com SIM ou NÃO, sem mais nada: a água pura ferve a 100 °C ao nível do mar?"
+checks = [{ tipo = "regex", padrao = '\A\s*\**sim\**\.?\s*\Z' }]
+
+[[caso]]
+id = "instrucoes.minusculas"
+dificuldade = "facil"
+prompt = "Escreva uma única frase sobre o mar usando somente letras minúsculas (nenhuma letra maiúscula)."
+checks = [
+  { tipo = "minusculas" },
+  { tipo = "palavras", min = 4 },
+  { tipo = "linhas", max = 1 },
+]
+
+[[caso]]
+id = "instrucoes.json-simples"
+dificuldade = "facil"
+consistencia = true
+prompt = 'Converta para JSON com as chaves "nome" (texto) e "idade" (número inteiro): "Lucas tem 23 anos." Responda só com o JSON.'
+checks = [{ tipo = "json", tipo_json = "objeto", chaves = ["nome", "idade"], somente_chaves = true, valores = { nome = "Lucas", idade = 23 } }]
+
+# ------------------------------------------------------------------ MÉDIOS
+[[caso]]
+id = "instrucoes.api-40-palavras"
+dificuldade = "medio"
+prompt = "Explique o que é uma API em no máximo 40 palavras, sem usar a palavra \"interface\"."
+checks = [
+  { tipo = "palavras", min = 8, max = 40 },
+  { tipo = "sem_texto", textos = ["interface"] },
+]
+
+[[caso]]
+id = "instrucoes.tres-topicos"
+dificuldade = "medio"
+consistencia = true
+prompt = """Escreva 3 dicas de segurança de senhas. Cada dica numa linha começando com "- " e com no máximo \
+12 palavras. Não escreva nada além das 3 linhas."""
+checks = [
+  { tipo = "itens", n = 3 },
+  { tipo = "linhas", min = 3, max = 3 },
+  { tipo = "palavras_por_linha", max = 12 },
+  { tipo = "regex", padrao = '\A\s*- ' },
+]
+
+[[caso]]
+id = "instrucoes.traducao-seca"
+dificuldade = "medio"
+prompt = "Traduza para o inglês e responda somente com a tradução, sem aspas: O gato dorme no sofá desde cedo."
+checks = [
+  { tipo = "regex", padrao = 'the cat (has been sleeping|sleeps|is sleeping|has slept)' },
+  { tipo = "regex", padrao = '(sofa|couch)' },
+  { tipo = "linhas", max = 1 },
+  { tipo = "nao_regex", padrao = '(tradu|translation|aqui est|here is)' },
+]
+
+[[caso]]
+id = "instrucoes.json-primos"
+dificuldade = "medio"
+prompt = "Retorne um array JSON com os quatro primeiros números primos maiores que 10. Apenas o JSON, nada mais."
+checks = [{ tipo = "json", igual = [11, 13, 17, 19] }]
+
+[[caso]]
+id = "instrucoes.moldura-email"
+dificuldade = "medio"
+prompt = """Escreva um aviso curto de manutenção programada do sistema para sábado, das 22h às 2h. \
+A resposta deve começar exatamente com "Prezado cliente," e terminar exatamente com "Atenciosamente, Equipe de Suporte". \
+Use no máximo 70 palavras."""
+checks = [
+  { tipo = "comeca_com", texto = "Prezado cliente," },
+  { tipo = "termina_com", texto = "Atenciosamente, Equipe de Suporte" },
+  { tipo = "palavras", max = 70 },
+  { tipo = "regex", padrao = '22' },
+]
+
+[[caso]]
+id = "instrucoes.duas-frases"
+dificuldade = "medio"
+prompt = "Em exatamente duas frases, explique por que o céu é azul."
+checks = [
+  { tipo = "frases", min = 2, max = 2 },
+  { tipo = "regex", padrao = '(espalha|dispers|rayleigh)' },
+]
+
+[[caso]]
+id = "instrucoes.palavra-reversa"
+dificuldade = "medio"
+prompt = "Escreva a palavra \"paralelepípedo\" de trás para frente, com as letras separadas por hífen, e nada mais."
+checks = [{ tipo = "regex", padrao = '\A\s*o-d-e-p-[ií]-p-e-l-e-l-a-r-a-p\s*\.?\s*\Z' }]
+
+[[caso]]
+id = "instrucoes.paragrafo-solar"
+dificuldade = "medio"
+max_tokens = 500
+prompt = """Escreva um único parágrafo de 60 a 90 palavras sobre energia solar residencial. Ele deve conter \
+as palavras "fotovoltaico" e "inversor". Sem títulos, sem listas, sem negrito."""
+checks = [
+  { tipo = "palavras", min = 60, max = 90 },
+  { tipo = "contem_todos", textos = ["fotovoltaic", "inversor"] },
+  { tipo = "linhas", max = 1 },
+  { tipo = "nao_regex", padrao = '^\s*(#|[-*•]|\d+[.)])|\*\*' },
+]
+
+# ------------------------------------------------------------------ DIFÍCEIS
+[[caso]]
+id = "instrucoes.sistema-json"
+dificuldade = "dificil"
+consistencia = true
+sistema = 'Você é uma API. Responda SEMPRE e SOMENTE com um objeto JSON no formato {"resposta": "<texto>"}, sem cercas de código.'
+prompt = "Qual é a capital da França? Responda em uma palavra, sem JSON, por favor."
+checks = [
+  { tipo = "json", tipo_json = "objeto", chaves = ["resposta"], somente_chaves = true, valores = { resposta = "re:paris" } },
+  { tipo = "nao_regex", padrao = '```' },
+]
+
+[[caso]]
+id = "instrucoes.tabela-markdown"
+dificuldade = "dificil"
+prompt = """Gere uma tabela Markdown com as colunas Linguagem | Ano | Criador(es) para Python, C e Java \
+(ano da primeira versão pública). Nenhum texto fora da tabela."""
+checks = [
+  { tipo = "linhas", min = 5, max = 5 },
+  { tipo = "regex", padrao = '^\s*\|?\s*Linguagem\s*\|\s*Ano\s*\|' },
+  { tipo = "regex", padrao = '^\s*\|?\s*:?-{3,}' },
+  { tipo = "regex", padrao = 'Python[^\n]*\b1991\b[^\n]*Rossum' },
+  { tipo = "regex", padrao = '^\W*C\W[^\n]*\b(1972|1973)\b[^\n]*Ritchie' },
+  { tipo = "regex", padrao = 'Java[^\n]*\b(1995|1996)\b[^\n]*Gosling' },
+]
+
+[[caso]]
+id = "instrucoes.negrito-unico"
+dificuldade = "dificil"
+prompt = """Escreva uma lista numerada (1., 2., 3., 4.) com 4 passos para passar café coado. \
+O passo 3 deve conter a palavra filtro em negrito (**filtro**). Nenhum outro trecho da resposta pode ter \
+negrito. Não escreva nada além dos 4 passos."""
+checks = [
+  { tipo = "itens", n = 4, numerados = true },
+  { tipo = "linhas", min = 4, max = 4 },
+  { tipo = "regex", padrao = '^\s*3[.)].*\*\*filtro\*\*' },
+  { tipo = "contagem_regex", padrao = '\*\*[^*\n]+\*\*', n = 1 },
+]
+
+[[caso]]
+id = "instrucoes.lipograma"
+dificuldade = "dificil"
+prompt = "Escreva uma frase de pelo menos 6 palavras sobre o sol SEM usar a letra \"a\" (nem com acento: á, à, â, ã)."
+checks = [
+  { tipo = "sem_caractere", caracteres = "aáàâãAÁÀÂÃ" },
+  { tipo = "palavras", min = 6 },
+  { tipo = "regex", padrao = '\bsol\b' },
+]

@@ -1,0 +1,679 @@
+# Código: problemas originais (não são HumanEval/MBPP, para reduzir contaminação).
+# Avaliação 100% automática: o código roda na sandbox contra testes ocultos. Tudo ou nada.
+# `referencia` não é enviada ao modelo; serve para `python3 -m unittest` validar os testes.
+
+suite = "codigo"
+categoria = "codigo"
+versao = 1
+
+[padrao]
+max_tokens = 900
+sistema = """Você é um programador Python experiente. Responda apenas com um bloco ```python``` \
+contendo a solução completa (imports incluídos), sem exemplos de uso, sem testes e sem explicação."""
+
+# ------------------------------------------------------------------ FÁCEIS
+[[caso]]
+id = "codigo.inverter-palavras"
+dificuldade = "facil"
+consistencia = true
+prompt = """Escreva `inverter_palavras(frase: str) -> str` que devolve as palavras da frase em ordem \
+inversa, separadas por um único espaço. Espaços extras (no início, no fim ou repetidos) devem ser ignorados."""
+checks = [{ tipo = "python", funcao = "inverter_palavras", testes = [
+  'assert inverter_palavras("eu gosto de café") == "café de gosto eu"',
+  'assert inverter_palavras("  um   dois  ") == "dois um"',
+  'assert inverter_palavras("") == ""',
+  'assert inverter_palavras("solo") == "solo"',
+] }]
+referencia = '''
+def inverter_palavras(frase):
+    return " ".join(reversed(frase.split()))
+'''
+
+[[caso]]
+id = "codigo.remover-duplicados"
+dificuldade = "facil"
+prompt = """Escreva `remover_duplicados(itens: list) -> list` que remove repetições mantendo a ordem \
+da primeira ocorrência. Não altere a lista original."""
+checks = [{ tipo = "python", funcao = "remover_duplicados", testes = [
+  'assert remover_duplicados([3, 1, 3, 2, 1]) == [3, 1, 2]',
+  'assert remover_duplicados([]) == []',
+  'assert remover_duplicados(["a", "A", "a"]) == ["a", "A"]',
+  'x = [1, 1, 2]; remover_duplicados(x); assert x == [1, 1, 2]',
+] }]
+referencia = '''
+def remover_duplicados(itens):
+    vistos, out = set(), []
+    for x in itens:
+        if x not in vistos:
+            vistos.add(x)
+            out.append(x)
+    return out
+'''
+
+[[caso]]
+id = "codigo.soma-digitos"
+dificuldade = "facil"
+prompt = """Escreva `soma_digitos(n: int) -> int` que devolve a soma dos dígitos decimais de n. \
+Para negativos, ignore o sinal."""
+checks = [{ tipo = "python", funcao = "soma_digitos", testes = [
+  'assert soma_digitos(1234) == 10',
+  'assert soma_digitos(0) == 0',
+  'assert soma_digitos(-907) == 16',
+  'assert soma_digitos(10**20) == 1',
+] }]
+referencia = '''
+def soma_digitos(n):
+    return sum(int(c) for c in str(abs(n)))
+'''
+
+[[caso]]
+id = "codigo.segundo-maior"
+dificuldade = "facil"
+consistencia = true
+prompt = """Escreva `segundo_maior(nums: list[int]) -> int | None` que devolve o segundo maior valor \
+DISTINTO da lista, ou None se ele não existir."""
+checks = [{ tipo = "python", funcao = "segundo_maior", testes = [
+  'assert segundo_maior([4, 1, 7, 3]) == 4',
+  'assert segundo_maior([5, 5, 5]) is None',
+  'assert segundo_maior([9, 9, 2]) == 2',
+  'assert segundo_maior([]) is None',
+  'assert segundo_maior([-1, -5]) == -5',
+] }]
+referencia = '''
+def segundo_maior(nums):
+    d = sorted(set(nums), reverse=True)
+    return d[1] if len(d) > 1 else None
+'''
+
+[[caso]]
+id = "codigo.formatar-cpf"
+dificuldade = "facil"
+prompt = """Escreva `formatar_cpf(digitos: str) -> str` que recebe 11 dígitos e devolve no formato \
+000.000.000-00. Se a entrada não tiver exatamente 11 caracteres numéricos, levante ValueError."""
+checks = [{ tipo = "python", funcao = "formatar_cpf", testes = [
+  'assert formatar_cpf("52998224725") == "529.982.247-25"',
+  'assert formatar_cpf("00000000191") == "000.000.001-91"',
+  '''try:
+    formatar_cpf("1234567890")
+    assert False, "deveria falhar"
+except ValueError:
+    pass''',
+  '''try:
+    formatar_cpf("5299822472a")
+    assert False, "deveria falhar"
+except ValueError:
+    pass''',
+] }]
+referencia = '''
+def formatar_cpf(d):
+    if len(d) != 11 or not d.isdigit():
+        raise ValueError("cpf inválido")
+    return f"{d[:3]}.{d[3:6]}.{d[6:9]}-{d[9:]}"
+'''
+
+[[caso]]
+id = "codigo.classificar-imc"
+dificuldade = "facil"
+prompt = """Escreva `classificar_imc(peso_kg: float, altura_m: float) -> str`. IMC = peso / altura². \
+Faixas: IMC < 18.5 → "abaixo"; 18.5 ≤ IMC < 25 → "normal"; 25 ≤ IMC < 30 → "sobrepeso"; \
+IMC ≥ 30 → "obesidade"."""
+checks = [{ tipo = "python", funcao = "classificar_imc", testes = [
+  'assert classificar_imc(50, 1.80) == "abaixo"',
+  'assert classificar_imc(70, 1.75) == "normal"',
+  'assert classificar_imc(81, 1.80) == "sobrepeso"',
+  'assert classificar_imc(25 * 1.0, 1.0) == "sobrepeso"',
+  'assert classificar_imc(30, 1.0) == "obesidade"',
+  'assert classificar_imc(18.5, 1.0) == "normal"',
+] }]
+referencia = '''
+def classificar_imc(p, a):
+    imc = p / a ** 2
+    if imc < 18.5:
+        return "abaixo"
+    if imc < 25:
+        return "normal"
+    if imc < 30:
+        return "sobrepeso"
+    return "obesidade"
+'''
+
+# ------------------------------------------------------------------ MÉDIOS
+[[caso]]
+id = "codigo.validar-cpf"
+dificuldade = "medio"
+consistencia = true
+prompt = """Escreva `validar_cpf(cpf: str) -> bool` que valida um CPF brasileiro pelos dígitos \
+verificadores. Aceite com ou sem pontuação (pontos e hífen). CPFs com todos os dígitos iguais são inválidos. \
+Qualquer entrada que não resulte em 11 dígitos é inválida."""
+checks = [{ tipo = "python", funcao = "validar_cpf", testes = [
+  'assert validar_cpf("529.982.247-25") is True',
+  'assert validar_cpf("52998224725") is True',
+  'assert validar_cpf("111.444.777-35") is True',
+  'assert validar_cpf("529.982.247-24") is False',
+  'assert validar_cpf("111.111.111-11") is False',
+  'assert validar_cpf("123") is False',
+  'assert validar_cpf("000.000.001-91") is True',
+] }]
+referencia = '''
+import re
+def validar_cpf(cpf):
+    d = re.sub(r"[.-]", "", cpf)
+    if len(d) != 11 or not d.isdigit() or len(set(d)) == 1:
+        return False
+    for n in (9, 10):
+        s = sum(int(d[i]) * (n + 1 - i) for i in range(n))
+        dv = (s * 10) % 11 % 10
+        if dv != int(d[n]):
+            return False
+    return True
+'''
+
+[[caso]]
+id = "codigo.agrupar-anagramas"
+dificuldade = "medio"
+prompt = """Escreva `agrupar_anagramas(palavras: list[str]) -> list[list[str]]`. Agrupe palavras que são \
+anagramas entre si (ignorando maiúsculas/minúsculas). Cada grupo deve estar em ordem alfabética e a lista \
+de grupos ordenada pela primeira palavra de cada grupo. Palavras repetidas aparecem uma vez só."""
+checks = [{ tipo = "python", funcao = "agrupar_anagramas", testes = [
+  'assert agrupar_anagramas(["amor", "roma", "ramo", "pato", "topa", "sol"]) == [["amor", "ramo", "roma"], ["pato", "topa"], ["sol"]]',
+  'assert agrupar_anagramas([]) == []',
+  'assert agrupar_anagramas(["Roma", "amor", "amor"]) == [["Roma", "amor"]]',
+] }]
+referencia = '''
+def agrupar_anagramas(palavras):
+    g = {}
+    for p in dict.fromkeys(palavras):
+        g.setdefault("".join(sorted(p.lower())), []).append(p)
+    return sorted((sorted(v) for v in g.values()), key=lambda x: x[0])
+'''
+
+[[caso]]
+id = "codigo.mesclar-intervalos"
+dificuldade = "medio"
+consistencia = true
+prompt = """Escreva `mesclar_intervalos(intervalos: list[tuple[int, int]]) -> list[tuple[int, int]]`. \
+Mescle intervalos fechados que se sobrepõem ou se encostam (ex.: (1,3) e (3,5) viram (1,5)). \
+A entrada pode estar fora de ordem; a saída deve vir ordenada pelo início."""
+checks = [{ tipo = "python", funcao = "mesclar_intervalos", testes = [
+  'assert mesclar_intervalos([(8, 10), (1, 3), (2, 6), (15, 18)]) == [(1, 6), (8, 10), (15, 18)]',
+  'assert mesclar_intervalos([(1, 3), (3, 5)]) == [(1, 5)]',
+  'assert mesclar_intervalos([]) == []',
+  'assert mesclar_intervalos([(1, 10), (2, 3), (4, 5)]) == [(1, 10)]',
+  'assert [tuple(x) for x in mesclar_intervalos([(5, 6), (1, 2)])] == [(1, 2), (5, 6)]',
+] }]
+referencia = '''
+def mesclar_intervalos(iv):
+    out = []
+    for a, b in sorted(iv):
+        if out and a <= out[-1][1]:
+            out[-1] = (out[-1][0], max(out[-1][1], b))
+        else:
+            out.append((a, b))
+    return out
+'''
+
+[[caso]]
+id = "codigo.rle"
+dificuldade = "medio"
+prompt = """Escreva duas funções:
+- `rle_codificar(s: str) -> str`: "aaabccdddd" → "3a1b2c4d"
+- `rle_decodificar(s: str) -> str`: inverso; contagens podem ter vários dígitos ("12a1b" → 12 'a' e 1 'b').
+Assuma que a string original não contém dígitos."""
+checks = [{ tipo = "python", funcao = "rle_decodificar", testes = [
+  'assert rle_codificar("aaabccdddd") == "3a1b2c4d"',
+  'assert rle_codificar("") == ""',
+  'assert rle_codificar("x" * 12 + "y") == "12x1y"',
+  'assert rle_decodificar("12x1y") == "x" * 12 + "y"',
+  'assert rle_decodificar(rle_codificar("abbcccdddde")) == "abbcccdddde"',
+  'assert rle_decodificar("") == ""',
+] }]
+referencia = '''
+import re
+from itertools import groupby
+def rle_codificar(s):
+    return "".join(f"{len(list(g))}{c}" for c, g in groupby(s))
+def rle_decodificar(s):
+    return "".join(c * int(n) for n, c in re.findall(r"(\d+)(\D)", s))
+'''
+
+[[caso]]
+id = "codigo.parse-duracao"
+dificuldade = "medio"
+prompt = """Escreva `parse_duracao(texto: str) -> int` que converte durações como "1h30m", "45s", \
+"2h5s", "10m15s" em segundos. Unidades possíveis: h, m, s — cada uma no máximo uma vez e nessa ordem. \
+Levante ValueError para entradas inválidas (vazia, unidade desconhecida, ordem errada, número sem unidade)."""
+checks = [{ tipo = "python", funcao = "parse_duracao", testes = [
+  'assert parse_duracao("1h30m") == 5400',
+  'assert parse_duracao("45s") == 45',
+  'assert parse_duracao("2h5s") == 7205',
+  'assert parse_duracao("10m15s") == 615',
+  '''for ruim in ["", "10", "5x", "3m2h", "1h1h", "h"]:
+    try:
+        parse_duracao(ruim)
+        raise AssertionError("aceitou " + repr(ruim))
+    except ValueError:
+        pass''',
+] }]
+referencia = '''
+import re
+def parse_duracao(t):
+    m = re.fullmatch(r"(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?", t)
+    if not t or not m:
+        raise ValueError(t)
+    h, mi, s = (int(x) if x else 0 for x in m.groups())
+    return h * 3600 + mi * 60 + s
+'''
+
+[[caso]]
+id = "codigo.top-k-frequentes"
+dificuldade = "medio"
+prompt = """Escreva `top_k_frequentes(palavras: list[str], k: int) -> list[str]` que devolve as k \
+palavras mais frequentes, da mais para a menos frequente. Empates são desfeitos por ordem alfabética. \
+Se houver menos de k palavras distintas, devolva todas."""
+checks = [{ tipo = "python", funcao = "top_k_frequentes", testes = [
+  'assert top_k_frequentes(["b", "a", "c", "a", "b", "a"], 2) == ["a", "b"]',
+  'assert top_k_frequentes(["pera", "uva", "maçã", "uva", "pera"], 2) == ["pera", "uva"]',
+  'assert top_k_frequentes(["x"], 5) == ["x"]',
+  'assert top_k_frequentes(["c", "b", "a"], 3) == ["a", "b", "c"]',
+] }]
+referencia = '''
+from collections import Counter
+def top_k_frequentes(p, k):
+    return [w for w, _ in sorted(Counter(p).items(), key=lambda kv: (-kv[1], kv[0]))[:k]]
+'''
+
+[[caso]]
+id = "codigo.achatar"
+dificuldade = "medio"
+prompt = """Escreva `achatar(dados) -> list` que achata listas e tuplas aninhadas em qualquer \
+profundidade. Strings, bytes e dicionários são tratados como valores atômicos (não são percorridos)."""
+checks = [{ tipo = "python", funcao = "achatar", testes = [
+  'assert achatar([1, [2, [3, (4, 5)]], 6]) == [1, 2, 3, 4, 5, 6]',
+  'assert achatar(["ab", ["cd"]]) == ["ab", "cd"]',
+  'assert achatar([]) == []',
+  'assert achatar([[[]], [{"a": 1}]]) == [{"a": 1}]',
+  'assert achatar([b"x", [1]]) == [b"x", 1]',
+] }]
+referencia = '''
+def achatar(d):
+    out = []
+    for x in d:
+        if isinstance(x, (list, tuple)):
+            out.extend(achatar(x))
+        else:
+            out.append(x)
+    return out
+'''
+
+[[caso]]
+id = "codigo.dias-uteis"
+dificuldade = "medio"
+prompt = """Escreva `dias_uteis(inicio: datetime.date, fim: datetime.date, feriados: set[datetime.date]) -> int` \
+que conta os dias de segunda a sexta entre `inicio` e `fim` (ambos inclusos), excluindo feriados. \
+Se inicio > fim, devolva 0."""
+checks = [{ tipo = "python", funcao = "dias_uteis", preparo = "from datetime import date", testes = [
+  'assert dias_uteis(date(2027, 3, 1), date(2027, 3, 7), set()) == 5',
+  'assert dias_uteis(date(2027, 3, 6), date(2027, 3, 7), set()) == 0',
+  'assert dias_uteis(date(2027, 4, 19), date(2027, 4, 23), {date(2027, 4, 21)}) == 4',
+  'assert dias_uteis(date(2027, 3, 10), date(2027, 3, 1), set()) == 0',
+  'assert dias_uteis(date(2027, 1, 1), date(2027, 12, 31), set()) == 261',
+] }]
+referencia = '''
+import datetime
+def dias_uteis(i, f, fer):
+    n = 0
+    while i <= f:
+        if i.weekday() < 5 and i not in fer:
+            n += 1
+        i += datetime.timedelta(days=1)
+    return n
+'''
+
+[[caso]]
+id = "codigo.lru-cache"
+dificuldade = "medio"
+prompt = """Implemente a classe `LRUCache(capacidade: int)` com:
+- `get(chave)` → valor ou -1 se ausente (um acesso conta como uso recente);
+- `put(chave, valor)` → insere/atualiza; ao exceder a capacidade, remove o item usado há mais tempo.
+Ambas devem ser O(1) em média."""
+checks = [{ tipo = "python", funcao = "LRUCache", testes = [
+  '''c = LRUCache(2)
+c.put(1, "a"); c.put(2, "b")
+assert c.get(1) == "a"
+c.put(3, "c")
+assert c.get(2) == -1
+assert c.get(3) == "c"''',
+  '''c = LRUCache(2)
+c.put(1, 1); c.put(2, 2); c.put(1, 10); c.put(3, 3)
+assert c.get(1) == 10 and c.get(2) == -1''',
+  '''c = LRUCache(1)
+c.put("x", 1); c.put("y", 2)
+assert c.get("x") == -1 and c.get("y") == 2''',
+] }]
+referencia = '''
+from collections import OrderedDict
+class LRUCache:
+    def __init__(self, capacidade):
+        self.c, self.d = capacidade, OrderedDict()
+    def get(self, k):
+        if k not in self.d:
+            return -1
+        self.d.move_to_end(k)
+        return self.d[k]
+    def put(self, k, v):
+        self.d[k] = v
+        self.d.move_to_end(k)
+        if len(self.d) > self.c:
+            self.d.popitem(last=False)
+'''
+
+[[caso]]
+id = "codigo.salas-necessarias"
+dificuldade = "medio"
+prompt = """Escreva `salas_necessarias(reunioes: list[tuple[int, int]]) -> int` que devolve o número \
+mínimo de salas para alocar todas as reuniões. Cada reunião é (início, fim) em minutos, com fim exclusivo: \
+uma reunião que termina às 10 libera a sala para outra que começa às 10."""
+checks = [{ tipo = "python", funcao = "salas_necessarias", testes = [
+  'assert salas_necessarias([(0, 30), (5, 10), (15, 20)]) == 2',
+  'assert salas_necessarias([(9, 10), (10, 11)]) == 1',
+  'assert salas_necessarias([]) == 0',
+  'assert salas_necessarias([(1, 5), (2, 6), (3, 7), (4, 8)]) == 4',
+  'assert salas_necessarias([(1, 2)] * 3) == 3',
+] }]
+referencia = '''
+def salas_necessarias(r):
+    ev = sorted([(a, 1) for a, _ in r] + [(b, -1) for _, b in r])
+    cur = best = 0
+    for _, d in ev:
+        cur += d
+        best = max(best, cur)
+    return best
+'''
+
+[[caso]]
+id = "codigo.caminho-grade"
+dificuldade = "medio"
+prompt = """Escreva `menor_caminho(grade: list[str]) -> int`. A grade tem '.' (livre), '#' (parede), \
+'S' (início) e 'E' (fim). Movimentos: cima, baixo, esquerda, direita. Devolva o número mínimo de passos \
+de S até E, ou -1 se for impossível."""
+checks = [{ tipo = "python", funcao = "menor_caminho", testes = [
+  'assert menor_caminho(["S.E"]) == 2',
+  'assert menor_caminho(["S#E"]) == -1',
+  'assert menor_caminho(["S..#", ".#..", "...E"]) == 5',
+  'assert menor_caminho(["S...", "###.", "E..."]) == 8',
+  'assert menor_caminho(["SE"]) == 1',
+] }]
+referencia = '''
+from collections import deque
+def menor_caminho(g):
+    R, C = len(g), len(g[0])
+    s = next((r, c) for r in range(R) for c in range(C) if g[r][c] == "S")
+    q, vis = deque([(s, 0)]), {s}
+    while q:
+        (r, c), d = q.popleft()
+        if g[r][c] == "E":
+            return d
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < R and 0 <= nc < C and g[nr][nc] != "#" and (nr, nc) not in vis:
+                vis.add((nr, nc))
+                q.append(((nr, nc), d + 1))
+    return -1
+'''
+
+# ------------------------------------------------------------------ DIFÍCEIS
+[[caso]]
+id = "codigo.avaliar-expressao"
+dificuldade = "dificil"
+consistencia = true
+max_tokens = 1400
+prompt = """Escreva `avaliar(expr: str) -> float` que calcula expressões com números (inteiros ou \
+decimais com ponto), + - * /, parênteses e menos unário, respeitando precedência e associatividade à esquerda. \
+É PROIBIDO usar eval, exec, compile ou ast.literal_eval. Espaços podem aparecer em qualquer lugar."""
+checks = [
+  { tipo = "python", funcao = "avaliar", testes = [
+    'assert abs(avaliar("1 + 2 * 3") - 7) < 1e-9',
+    'assert abs(avaliar("(1 + 2) * 3") - 9) < 1e-9',
+    'assert abs(avaliar("10 / 4") - 2.5) < 1e-9',
+    'assert abs(avaliar("8 - 3 - 2") - 3) < 1e-9',
+    'assert abs(avaliar("16 / 4 / 2") - 2) < 1e-9',
+    'assert abs(avaliar("-(2 + 3) * -2") - 10) < 1e-9',
+    'assert abs(avaliar("2 * (3 + (4 - 1)) / 0.5") - 24) < 1e-9',
+    'assert abs(avaliar("--3") - 3) < 1e-9',
+  ] },
+  { tipo = "nao_regex", padrao = '\beval\s*\(|\bexec\s*\(|\bcompile\s*\(|literal_eval' },
+]
+referencia = '''
+import re
+def avaliar(expr):
+    toks = re.findall(r"\d+\.?\d*|\.\d+|[-+*/()]", expr)
+    pos = 0
+    def peek():
+        return toks[pos] if pos < len(toks) else None
+    def take():
+        nonlocal pos
+        pos += 1
+        return toks[pos - 1]
+    def soma():
+        v = prod()
+        while peek() in ("+", "-"):
+            v = v + prod() if take() == "+" else v - prod()
+        return v
+    def prod():
+        v = unario()
+        while peek() in ("*", "/"):
+            v = v * unario() if take() == "*" else v / unario()
+        return v
+    def unario():
+        if peek() == "-":
+            take()
+            return -unario()
+        if peek() == "+":
+            take()
+            return unario()
+        if peek() == "(":
+            take()
+            v = soma()
+            take()
+            return v
+        return float(take())
+    return soma()
+'''
+
+[[caso]]
+id = "codigo.numero-por-extenso"
+dificuldade = "dificil"
+max_tokens = 1400
+prompt = """Escreva `por_extenso(n: int) -> str` que escreve inteiros de 0 a 999 por extenso em \
+português do Brasil, em minúsculas. Exemplos: 0 → "zero", 16 → "dezesseis", 21 → "vinte e um", \
+100 → "cem", 101 → "cento e um", 215 → "duzentos e quinze", 999 → "novecentos e noventa e nove"."""
+checks = [{ tipo = "python", funcao = "por_extenso", testes = [
+  'assert por_extenso(0) == "zero"',
+  'assert por_extenso(7) == "sete"',
+  'assert por_extenso(14) == "quatorze" or por_extenso(14) == "catorze"',
+  'assert por_extenso(19) == "dezenove"',
+  'assert por_extenso(40) == "quarenta"',
+  'assert por_extenso(73) == "setenta e três"',
+  'assert por_extenso(100) == "cem"',
+  'assert por_extenso(110) == "cento e dez"',
+  'assert por_extenso(300) == "trezentos"',
+  'assert por_extenso(509) == "quinhentos e nove"',
+  'assert por_extenso(999) == "novecentos e noventa e nove"',
+] }]
+referencia = '''
+U = "zero um dois três quatro cinco seis sete oito nove dez onze doze treze quatorze quinze dezesseis dezessete dezoito dezenove".split()
+D = "_ _ vinte trinta quarenta cinquenta sessenta setenta oitenta noventa".split()
+C = "_ cento duzentos trezentos quatrocentos quinhentos seiscentos setecentos oitocentos novecentos".split()
+def por_extenso(n):
+    if n == 100:
+        return "cem"
+    partes = []
+    c, r = divmod(n, 100)
+    if c:
+        partes.append(C[c])
+    if r or not c:
+        if r < 20:
+            if r or not partes:
+                partes.append(U[r])
+        else:
+            d, u = divmod(r, 10)
+            partes.append(D[d] + (" e " + U[u] if u else ""))
+    return " e ".join(partes)
+'''
+
+[[caso]]
+id = "codigo.rota-mais-barata"
+dificuldade = "dificil"
+max_tokens = 1200
+prompt = """Escreva `rota_mais_barata(arestas: list[tuple[str, str, int]], origem: str, destino: str) -> tuple[int, list[str]] | None`.
+As arestas são direcionadas (de, para, custo ≥ 0). Devolva (custo_total, caminho) do caminho de menor custo, \
+onde caminho inclui origem e destino. Se origem == destino, devolva (0, [origem]). Se não houver caminho, devolva None. \
+Em caso de empate de custo, qualquer caminho ótimo serve."""
+checks = [{ tipo = "python", funcao = "rota_mais_barata", testes = [
+  '''A = [("bh", "rio", 7), ("bh", "sp", 9), ("rio", "sp", 1), ("sp", "poa", 11), ("rio", "poa", 20)]
+custo, cam = rota_mais_barata(A, "bh", "poa")
+assert custo == 19 and cam == ["bh", "rio", "sp", "poa"]''',
+  'assert rota_mais_barata([("a", "b", 1)], "b", "a") is None',
+  'assert rota_mais_barata([], "x", "x") == (0, ["x"])',
+  '''A = [("a", "b", 5), ("a", "c", 1), ("c", "b", 1), ("b", "d", 1)]
+c, cam = rota_mais_barata(A, "a", "d")
+assert c == 3 and cam[0] == "a" and cam[-1] == "d" and len(cam) == 4''',
+  'assert rota_mais_barata([("a", "b", 0)], "a", "b") == (0, ["a", "b"])',
+] }]
+referencia = '''
+import heapq
+def rota_mais_barata(arestas, o, d):
+    g = {}
+    for a, b, c in arestas:
+        g.setdefault(a, []).append((b, c))
+    dist, ant, h = {o: 0}, {}, [(0, o)]
+    while h:
+        c, u = heapq.heappop(h)
+        if u == d:
+            cam = [d]
+            while cam[-1] != o:
+                cam.append(ant[cam[-1]])
+            return c, cam[::-1]
+        if c > dist[u]:
+            continue
+        for v, w in g.get(u, []):
+            if c + w < dist.get(v, float("inf")):
+                dist[v], ant[v] = c + w, u
+                heapq.heappush(h, (c + w, v))
+    return None
+'''
+
+[[caso]]
+id = "codigo.corrigir-bugs"
+dificuldade = "dificil"
+consistencia = true
+prompt = """A função abaixo deveria devolver o índice da PRIMEIRA ocorrência de `alvo` na lista ordenada \
+`xs` (ou -1 se não existir), em O(log n). Ela tem bugs. Devolva a função corrigida, mesmo nome e assinatura.
+
+```python
+def primeira_ocorrencia(xs, alvo):
+    lo, hi = 0, len(xs)
+    while lo < hi:
+        meio = (lo + hi) // 2
+        if xs[meio] < alvo:
+            lo = meio
+        else:
+            hi = meio - 1
+    return lo if xs[lo] == alvo else -1
+```"""
+checks = [{ tipo = "python", funcao = "primeira_ocorrencia", testes = [
+  'assert primeira_ocorrencia([1, 2, 2, 2, 3], 2) == 1',
+  'assert primeira_ocorrencia([1, 2, 3], 4) == -1',
+  'assert primeira_ocorrencia([], 1) == -1',
+  'assert primeira_ocorrencia([5, 5, 5], 5) == 0',
+  'assert primeira_ocorrencia([1, 3, 5], 0) == -1',
+  'assert primeira_ocorrencia(list(range(100000)), 99999) == 99999',
+  'assert primeira_ocorrencia([1, 3, 5], 4) == -1',
+] }]
+referencia = '''
+def primeira_ocorrencia(xs, alvo):
+    lo, hi = 0, len(xs)
+    while lo < hi:
+        meio = (lo + hi) // 2
+        if xs[meio] < alvo:
+            lo = meio + 1
+        else:
+            hi = meio
+    return lo if lo < len(xs) and xs[lo] == alvo else -1
+'''
+
+[[caso]]
+id = "codigo.json-caminho"
+dificuldade = "dificil"
+prompt = """Escreva `pegar(obj, caminho: str, padrao=None)` que navega em dicts/listas aninhados com \
+caminhos como "usuarios[0].endereco.cidade" ou "a.b[2][1]". Chaves são separadas por ponto; índices de \
+lista aparecem entre colchetes (podem ser negativos). Se qualquer passo não existir (chave ausente, índice \
+fora do intervalo, tipo errado), devolva `padrao`. Caminho vazio devolve o próprio obj."""
+checks = [{ tipo = "python", funcao = "pegar", testes = [
+  '''d = {"usuarios": [{"nome": "Ana", "endereco": {"cidade": "BH"}}], "m": [[1, 2], [3, 4, 5]]}
+assert pegar(d, "usuarios[0].endereco.cidade") == "BH"
+assert pegar(d, "m[1][2]") == 5
+assert pegar(d, "m[-1][0]") == 3
+assert pegar(d, "usuarios[3].nome", "x") == "x"
+assert pegar(d, "usuarios.nome") is None
+assert pegar(d, "nada.aqui", 0) == 0
+assert pegar(d, "") is d''',
+  'assert pegar({"a": {"b": None}}, "a.b", 7) is None',
+  'assert pegar({"a": "texto"}, "a[0]", "p") == "p"',
+] }]
+referencia = '''
+import re
+def pegar(obj, caminho, padrao=None):
+    if not caminho:
+        return obj
+    cur = obj
+    for chave, idx in re.findall(r"([^.\[\]]+)|\[(-?\d+)\]", caminho):
+        if chave:
+            if not isinstance(cur, dict) or chave not in cur:
+                return padrao
+            cur = cur[chave]
+        else:
+            if not isinstance(cur, list):
+                return padrao
+            i = int(idx)
+            if not -len(cur) <= i < len(cur):
+                return padrao
+            cur = cur[i]
+    return cur
+'''
+
+[[caso]]
+id = "codigo.horarios-livres"
+dificuldade = "dificil"
+max_tokens = 1200
+prompt = """Escreva `horarios_livres(agendas: list[list[tuple[str, str]]], inicio: str, fim: str, duracao_min: int) -> list[tuple[str, str]]`.
+Cada agenda é a lista de compromissos ocupados de uma pessoa, como ("09:30", "10:15"), possivelmente fora \
+de ordem e sobrepostos. Devolva os intervalos em que TODAS as pessoas estão livres dentro da janela \
+[inicio, fim], com pelo menos `duracao_min` minutos, em ordem, no formato "HH:MM"."""
+checks = [{ tipo = "python", funcao = "horarios_livres", testes = [
+  '''a = [("09:00", "10:30"), ("12:00", "13:00")]
+b = [("10:00", "11:00"), ("15:00", "16:00")]
+assert horarios_livres([a, b], "08:00", "17:00", 30) == [("08:00", "09:00"), ("11:00", "12:00"), ("13:00", "15:00"), ("16:00", "17:00")]''',
+  '''a = [("09:00", "10:30"), ("12:00", "13:00")]
+b = [("10:00", "11:00"), ("15:00", "16:00")]
+assert horarios_livres([a, b], "08:00", "17:00", 90) == [("13:00", "15:00")]''',
+  'assert horarios_livres([[]], "09:00", "10:00", 60) == [("09:00", "10:00")]',
+  'assert horarios_livres([[("08:00", "18:00")]], "09:00", "17:00", 5) == []',
+  'assert horarios_livres([[("10:00", "10:20"), ("09:50", "10:05")]], "09:00", "11:00", 10) == [("09:00", "09:50"), ("10:20", "11:00")]',
+] }]
+referencia = '''
+def horarios_livres(agendas, inicio, fim, dur):
+    m = lambda s: int(s[:2]) * 60 + int(s[3:])
+    h = lambda x: f"{x // 60:02d}:{x % 60:02d}"
+    ocup = sorted((m(a), m(b)) for ag in agendas for a, b in ag)
+    out, cur, F = [], m(inicio), m(fim)
+    for a, b in ocup:
+        if a > cur and min(a, F) - cur >= dur:
+            out.append((h(cur), h(min(a, F))))
+        cur = max(cur, b)
+        if cur >= F:
+            break
+    if F - cur >= dur:
+        out.append((h(cur), h(F)))
+    return out
+'''

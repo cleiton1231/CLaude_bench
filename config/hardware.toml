@@ -1,0 +1,31 @@
+# Configuração da máquina. Ajuste os caminhos para o seu sistema.
+
+[servidor]
+# llama.cpp compilado com Vulkan (-DGGML_VULKAN=ON). ROCm/HIP também funciona.
+binario = "~/llama.cpp/build/bin/llama-server"
+host = "127.0.0.1"   # nunca 0.0.0.0
+porta = 8080
+# variáveis de ambiente extras para o processo do servidor
+ambiente = { RADV_PERFTEST = "nogttspill" }
+
+[gpu]
+nome = "AMD Radeon RX 9060 XT"
+vram_gib = 16
+# vazio = detecta o primeiro card AMD em /sys/class/drm
+sysfs = ""
+
+[bench]
+seed = 1234
+tok_s_referencia = 30     # usado só nas estimativas de tempo
+timeout_caso_s = 300
+
+# Pesos das categorias na nota geral (somam 100).
+[pesos]
+codigo = 20
+raciocinio = 15
+instrucoes = 12
+ferramentas = 13
+agente = 10
+ceticismo = 12
+redacao = 8
+contexto = 10

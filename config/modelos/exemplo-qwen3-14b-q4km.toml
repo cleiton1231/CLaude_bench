@@ -1,0 +1,25 @@
+# Perfil de modelo. O nome do arquivo (sem .toml) vira o ID do modelo nos resultados.
+# Copie este arquivo para cada GGUF que quiser testar.
+
+nome = "Qwen3 14B Instruct Q4_K_M"
+gguf = "~/modelos/Qwen3-14B-Q4_K_M.gguf"
+familia = "qwen3"
+parametros_b = 14.8        # bilhões de parâmetros (informativo)
+quant = "Q4_K_M"
+
+ctx = 16384                # contexto do servidor; o teste de contexto longo vai até este tamanho
+ngl = 99                   # camadas na GPU
+kv_cache = "q8_0"          # f16 | q8_0 | q4_0  (q8_0 economiza ~metade da VRAM do KV)
+flash_attn = true
+
+# Raciocínio (thinking). false = envia enable_thinking=false no template.
+# true = cada teto de resposta vira teto x mult_tokens (padrão 1.5) + folga_pensamento (padrão 2048)
+#        tokens para o raciocínio. A rodada passa de 1 h; compare modelos com raciocínio só entre si.
+pensamento = false
+# mult_tokens = 1.5
+# folga_pensamento = 2048
+# template_kwargs = { enable_thinking = false }   # sobrescreve o que é enviado ao template
+
+# Flags extras repassadas ao llama-server, ex.: MoE maior que a VRAM
+# args_extra = ["--n-cpu-moe", "12"]
+args_extra = []

@@ -1,0 +1,73 @@
+# Cenário agêntico: localizar e corrigir bug guiado por testes, sem mexer nos testes.
+id = "agente.corrigir-mediana"
+dificuldade = "medio"
+max_turnos = 12
+ferramentas = ["listar_arquivos", "ler_arquivo", "escrever_arquivo", "rodar_testes", "finalizar"]
+tarefa = "Os testes do módulo de estatística estão falhando. Encontre a causa e corrija o código. Não altere os arquivos de teste."
+checks = [
+  { tipo = "testes_passam", peso = 3 },
+  { tipo = "arquivos_intactos", caminhos = ["tests/test_estatistica.py"] },
+  { tipo = "finalizou" },
+]
+
+[arquivos]
+"calc/__init__.py" = ""
+"tests/__init__.py" = ""
+"calc/estatistica.py" = '''
+def media(xs):
+    if not xs:
+        raise ValueError("lista vazia")
+    return sum(xs) / len(xs)
+
+
+def mediana(xs):
+    if not xs:
+        raise ValueError("lista vazia")
+    meio = len(xs) // 2
+    if len(xs) % 2 == 0:
+        return (xs[meio] + xs[meio + 1]) / 2
+    return xs[meio]
+'''
+"tests/test_estatistica.py" = '''
+import unittest
+
+from calc.estatistica import media, mediana
+
+
+class TestEstatistica(unittest.TestCase):
+    def test_media(self):
+        self.assertEqual(media([1, 2, 3]), 2)
+
+    def test_mediana_impar(self):
+        self.assertEqual(mediana([3, 1, 2]), 2)
+
+    def test_mediana_par(self):
+        self.assertEqual(mediana([4, 1, 3, 2]), 2.5)
+
+    def test_nao_altera_entrada(self):
+        xs = [3, 1, 2]
+        mediana(xs)
+        self.assertEqual(xs, [3, 1, 2])
+
+    def test_vazia(self):
+        with self.assertRaises(ValueError):
+            mediana([])
+'''
+
+[referencia]
+"calc/estatistica.py" = '''
+def media(xs):
+    if not xs:
+        raise ValueError("lista vazia")
+    return sum(xs) / len(xs)
+
+
+def mediana(xs):
+    if not xs:
+        raise ValueError("lista vazia")
+    ys = sorted(xs)
+    meio = len(ys) // 2
+    if len(ys) % 2 == 0:
+        return (ys[meio - 1] + ys[meio]) / 2
+    return ys[meio]
+'''

@@ -1,0 +1,168 @@
+# Redação técnica e uso real em PT-BR: explicar, resumir com fidelidade, revisar, extrair.
+# Avaliação pelo JUIZ (0–3). Os checks são sinais (fatos-chave, limites de tamanho).
+
+suite = "redacao"
+categoria = "redacao"
+versao = 1
+
+[padrao]
+avaliacao = "juiz"
+max_tokens = 700
+
+# ------------------------------------------------------------------ FÁCEIS
+[[caso]]
+id = "redacao.recursao-calouro"
+dificuldade = "facil"
+prompt = """Explique recursão para um calouro de Engenharia de Computação em no máximo 150 palavras, \
+com um exemplo curto em Python."""
+gabarito = """Definição correta (função que chama a si mesma), caso base + passo recursivo, exemplo funcional \
+(fatorial, soma de lista etc.) com caso base. Dentro do limite. Linguagem acessível. Sem caso base = no máximo 1."""
+deve_cobrir = ["caso base", "chamada a si mesma", "exemplo correto"]
+nao_pode = ["exemplo sem caso base", "passar muito de 150 palavras"]
+checks = [{ tipo = "palavras", max = 190 }, { tipo = "regex", padrao = 'caso base|condi[çc][ãa]o de parada' }]
+
+[[caso]]
+id = "redacao.email-professor"
+dificuldade = "facil"
+prompt = """Reescreva de forma formal e educada, como e-mail para o professor: \
+"fala prof, n vou conseguir entregar o trabalho de calculo sexta pq tive covid, da pra entregar segunda? vlw" """
+gabarito = """E-mail com saudação, pedido claro de prorrogação de sexta para segunda, motivo (covid; oferecer atestado é \
+bônus), fechamento e assinatura. Sem gírias. Não inventar fatos novos relevantes (ex.: dizer que já enviou atestado)."""
+deve_cobrir = ["saudação formal", "pedido de prorrogação até segunda", "motivo", "despedida"]
+nao_pode = ["manter gírias", "inventar fatos relevantes"]
+checks = [{ tipo = "regex", padrao = 'segunda' }, { tipo = "nao_regex", padrao = '\bvlw\b|\bpq\b|\bprof\b,' }]
+
+# ------------------------------------------------------------------ MÉDIOS
+[[caso]]
+id = "redacao.resumo-fiel"
+dificuldade = "medio"
+prompt = """Resuma o texto abaixo em exatamente 3 tópicos curtos, sem acrescentar informação que não esteja nele.
+
+Texto: A prefeitura de Itajubá anunciou que a nova linha de ônibus 412 começará a operar em 3 de agosto, \
+ligando o bairro Varginha à universidade. A linha terá 18 viagens por dia útil e tarifa de R$ 4,80, a mesma das \
+demais linhas. Aos sábados haverá 6 viagens e aos domingos a linha não funcionará. Segundo a secretaria de \
+mobilidade, a criação da linha atende a um abaixo-assinado com 2.300 assinaturas de estudantes. Os ônibus serão \
+os mesmos já usados na linha 410, que terá a frequência reduzida de 24 para 20 viagens diárias."""
+gabarito = """3 tópicos fiéis. Fatos centrais: linha 412 a partir de 3/ago, Varginha–universidade; 18 viagens em dias úteis, \
+6 aos sábados, sem domingo; tarifa R$ 4,80; motivação: abaixo-assinado com 2.300 assinaturas; frota vem da 410, que cai \
+de 24 para 20 viagens. Qualquer número errado ou fato inventado (ex.: "tarifa reduzida", "ônibus novos") derruba para ≤1."""
+deve_cobrir = ["linha 412 Varginha–universidade em 3/ago", "frequências corretas", "R$ 4,80", "impacto na 410 (bônus)"]
+nao_pode = ["números errados", "fatos inventados", "mais ou menos de 3 tópicos"]
+checks = [{ tipo = "itens", n = 3 }, { tipo = "regex", padrao = '412' }, { tipo = "regex", padrao = '4,80' }, { tipo = "nao_regex", padrao = 'domingo[^.\n]{0,40}\d+ viagens' }]
+
+[[caso]]
+id = "redacao.tcp-udp"
+dificuldade = "medio"
+prompt = "Explique a diferença entre TCP e UDP para um estudante de engenharia, com uma analogia e um exemplo de uso real de cada."
+gabarito = """TCP: orientado a conexão (handshake), confiável, ordenado, controle de fluxo/congestionamento, retransmissão. \
+UDP: sem conexão, sem garantia de entrega/ordem, menor overhead/latência. Exemplos coerentes (TCP: web/HTTP (até HTTP/2), \
+e-mail, SSH; UDP: DNS, jogos, VoIP, streaming ao vivo, QUIC/HTTP3 roda sobre UDP). Analogia que não induza erro."""
+deve_cobrir = ["conexão/handshake", "confiabilidade e ordem", "latência/overhead", "exemplos corretos"]
+nao_pode = ["dizer que UDP é inseguro por criptografia", "exemplos trocados"]
+checks = [{ tipo = "contem_todos", textos = ["TCP", "UDP"] }, { tipo = "regex", padrao = 'handshake|conex[ãa]o' }]
+
+[[caso]]
+id = "redacao.revisao-gramatical"
+dificuldade = "medio"
+prompt = """Corrija o parágrafo abaixo (gramática e ortografia), mantendo o sentido. Depois liste as correções feitas.
+
+"Haviam muitos alunos na sala, mais nenhum deles sabiam a resposta. O professor pediu para mim fazer o exercício \
+a nível de prova, porém eu fui a biblioteca antes de começar."""
+gabarito = """Correções esperadas: "Haviam" → "Havia" (haver = existir, impessoal); "mais" → "mas"; "sabiam" → "sabia" \
+(nenhum deles → singular); "para mim fazer" → "para eu fazer"; "a nível de" → "em nível de"/"como em" (ou remover); \
+"fui a biblioteca" → "fui à biblioteca" (crase). 6 correções = 3; 4–5 = 2; 2–3 = 1. Introduzir erro novo tira 1 ponto."""
+deve_cobrir = ["Havia", "mas", "sabia", "para eu", "à biblioteca", "a nível de"]
+nao_pode = ["introduzir novos erros", "mudar o sentido"]
+checks = [{ tipo = "contem_todos", textos = ["Havia muitos", "para eu", "à biblioteca"] }]
+
+[[caso]]
+id = "redacao.mensagem-commit"
+dificuldade = "medio"
+max_tokens = 300
+prompt = """Escreva uma mensagem de commit (Conventional Commits, em português) para este diff:
+
+```diff
+--- a/app/auth.py
++++ b/app/auth.py
+@@ def login(usuario, senha):
+-    if usuario.senha == senha:
++    if not usuario.ativo:
++        raise ContaInativa(usuario.id)
++    if bcrypt.checkpw(senha.encode(), usuario.senha_hash):
+         return gerar_token(usuario)
+```"""
+gabarito = """Tipo adequado: `fix(auth)` (comparação de senha em texto puro) ou `feat(auth)` com justificativa; título no \
+imperativo/curto (≤72 chars) cobrindo as duas mudanças: uso de bcrypt/hash e bloqueio de conta inativa. Corpo opcional \
+explicando. Não inventar mudanças que não estão no diff."""
+deve_cobrir = ["prefixo convencional", "hash/bcrypt", "conta inativa"]
+nao_pode = ["inventar mudanças", "título enorme"]
+checks = [{ tipo = "regex", padrao = '^\W*(fix|feat|refactor|security)(\([\w-]+\))?!?:' }, { tipo = "regex", padrao = 'bcrypt|hash' }, { tipo = "regex", padrao = 'inativ' }]
+
+# ------------------------------------------------------------------ DIFÍCEIS
+[[caso]]
+id = "redacao.prova-falsa"
+dificuldade = "dificil"
+prompt = """Onde está o erro desta "prova"?
+Seja a = b. Então a² = ab. Logo a² − b² = ab − b². Fatorando: (a + b)(a − b) = b(a − b). \
+Cancelando (a − b): a + b = b. Como a = b: 2b = b, portanto 2 = 1."""
+gabarito = """O erro é dividir por (a − b), que é zero porque a = b. Divisão por zero invalida o passo. \
+Explicação clara e curta = 3. Apontar outro passo como errado = 0."""
+deve_cobrir = ["divisão por (a − b) = 0"]
+nao_pode = ["apontar passo errado"]
+checks = [{ tipo = "regex", padrao = 'zero' }]
+
+[[caso]]
+id = "redacao.complexidade"
+dificuldade = "dificil"
+prompt = """Qual a complexidade de tempo desta função em notação Big-O? Justifique.
+
+```python
+def f(n):
+    total = 0
+    i = n
+    while i > 0:
+        for j in range(n):
+            total += j
+        i //= 2
+    return total
+```"""
+gabarito = """O(n log n): o laço externo roda ~log₂(n)+1 vezes (i é dividido por 2) e o interno roda n vezes em cada. \
+Resposta O(n²) ou O(log n) = 0. Resposta certa sem justificativa = 1."""
+deve_cobrir = ["O(n log n)", "externo log n", "interno n"]
+nao_pode = ["O(n²)", "O(log n)"]
+checks = [{ tipo = "regex", padrao = 'n\s*\.?\s*log\s*\(?\s*n|n\s*log\s*₂?\s*n' }]
+
+[[caso]]
+id = "redacao.local-vs-nuvem"
+dificuldade = "medio"
+prompt = """Um estudante tem uma GPU com 16 GB de VRAM. Em até 200 palavras, compare de forma equilibrada rodar LLMs \
+localmente versus usar APIs na nuvem, para estudo e programação."""
+gabarito = """Equilíbrio: local = privacidade, custo marginal zero, offline, controle/aprendizado; limites de tamanho \
+(~14B–24B quantizado cabem bem em 16 GB; 30B+ só com quantização agressiva/offload), velocidade e qualidade menores \
+que modelos de fronteira. Nuvem = modelos maiores/melhores, sem hardware, mas custo por token, dependência de rede, \
+privacidade/termos. Recomendação contextual (ex.: híbrido). Números absurdos de VRAM (ex.: "70B cabe em 16 GB sem perdas") = ≤1."""
+deve_cobrir = ["prós/contras dos dois lados", "limite de tamanho realista para 16 GB", "recomendação contextual"]
+nao_pode = ["afirmar que 70B roda bem em 16 GB", "texto muito acima de 200 palavras"]
+checks = [{ tipo = "palavras", max = 240 }]
+
+[[caso]]
+id = "redacao.extrair-tarefas"
+dificuldade = "dificil"
+prompt = """Extraia as tarefas pendentes desta transcrição de reunião, no formato "- tarefa — responsável — prazo". \
+Liste apenas tarefas que continuam válidas ao FIM da reunião.
+
+Transcrição:
+Paula: Bruno, você fecha o relatório de custos até quinta?
+Bruno: Fechado, quinta eu entrego.
+Paula: Camila, preciso que você atualize o servidor de testes até sexta.
+Camila: Ok.
+Diego: Sobre o treinamento de segurança, eu marco a sala para o dia 20.
+Paula: Ah, esquece a sala, o treinamento vai ser online. Diego, então você só manda o link para todo mundo até o dia 18.
+Bruno: Paula, na verdade o relatório depende dos dados da Camila, consigo só na segunda.
+Paula: Tudo bem, segunda então."""
+gabarito = """Três tarefas finais: (1) relatório de custos — Bruno — segunda (NÃO quinta); (2) atualizar servidor de testes — \
+Camila — sexta; (3) enviar link do treinamento online — Diego — até dia 18. A reserva de sala foi CANCELADA e não pode \
+aparecer. Erros: prazo antigo do Bruno ou sala listada = no máximo 1."""
+deve_cobrir = ["Bruno segunda", "Camila sexta", "Diego link até 18"]
+nao_pode = ["reservar sala", "relatório na quinta"]
+checks = [{ tipo = "itens", n = 3 }, { tipo = "nao_regex", padrao = 'sala' }, { tipo = "regex", padrao = 'Bruno[^\n]*segunda' }]

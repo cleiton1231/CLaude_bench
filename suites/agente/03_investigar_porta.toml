@@ -1,0 +1,52 @@
+# Cenário agêntico (só leitura): juntar pistas de vários arquivos e respeitar precedência de configuração.
+id = "agente.investigar-porta"
+dificuldade = "medio"
+max_turnos = 12
+ferramentas = ["listar_arquivos", "ler_arquivo", "escrever_arquivo", "finalizar"]
+tarefa = "Em produção, em qual porta TCP o serviço sobe? Investigue os arquivos do projeto (não altere nada) e responda com `finalizar`, citando de onde veio o valor."
+checks = [
+  { tipo = "resposta_regex", padrao = '\b9500\b', peso = 3 },
+  { tipo = "resposta_regex", padrao = 'producao\.env|APP_PORTA' },
+  { tipo = "arquivos_intactos", caminhos = ["README.md", "config/padrao.toml", "config/producao.toml", "deploy/producao.env", "deploy/homologacao.env", "app/servidor.py"] },
+]
+resposta_referencia = "9500, definida por APP_PORTA em deploy/producao.env"
+
+[arquivos]
+"README.md" = '''
+# Serviço de relatórios
+
+Configuração:
+1. Valores base em `config/padrao.toml`.
+2. Em produção, `config/producao.toml` sobrescreve os valores base.
+3. A variável `APP_PORTA` do arquivo `.env` do ambiente (pasta `deploy/`), se existir, tem prioridade sobre tudo.
+
+Veja `app/servidor.py`.
+'''
+"config/padrao.toml" = '''
+porta = 8000
+log = "info"
+'''
+"config/producao.toml" = '''
+porta = 9443
+log = "warning"
+'''
+"deploy/homologacao.env" = '''
+APP_PORTA=9100
+APP_DEBUG=1
+'''
+"deploy/producao.env" = '''
+APP_DEBUG=0
+APP_PORTA=9500
+'''
+"app/servidor.py" = '''
+import os
+import tomllib
+
+
+def porta(ambiente: str) -> int:
+    cfg = tomllib.load(open("config/padrao.toml", "rb"))
+    if ambiente == "producao":
+        cfg.update(tomllib.load(open("config/producao.toml", "rb")))
+    env = dict(l.strip().split("=", 1) for l in open(f"deploy/{ambiente}.env") if "=" in l)
+    return int(env.get("APP_PORTA", cfg["porta"]))
+'''

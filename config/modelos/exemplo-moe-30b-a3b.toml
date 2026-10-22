@@ -1,0 +1,15 @@
+# Exemplo de MoE que não cabe inteiro em 16 GB: especialistas de algumas camadas vão para a CPU.
+# Ajuste --n-cpu-moe até o VRAM ficar em ~15 GB no 01_subir_modelo (veja meta.json -> vram_carregado_gib).
+
+nome = "Qwen3 30B-A3B Q4_K_M (MoE, offload parcial)"
+gguf = "~/modelos/Qwen3-30B-A3B-Q4_K_M.gguf"
+familia = "qwen3-moe"
+parametros_b = 30.5
+quant = "Q4_K_M"
+
+ctx = 16384
+ngl = 99
+kv_cache = "q8_0"
+flash_attn = true
+pensamento = false
+args_extra = ["--n-cpu-moe", "8"]

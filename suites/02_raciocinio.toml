@@ -1,0 +1,156 @@
+# Raciocínio: matemática do dia a dia, lógica, datas, probabilidade e pegadinhas clássicas.
+# Avaliação automática pela linha final "RESPOSTA: ...". Esquecer o formato conta como erro:
+# seguir formato é parte da prova (o enunciado pede explicitamente).
+
+suite = "raciocinio"
+categoria = "raciocinio"
+versao = 1
+
+[padrao]
+max_tokens = 800
+sistema = """Resolva com raciocínio curto e objetivo. A última linha da resposta deve ser exatamente \
+no formato `RESPOSTA: <valor>`, sem unidade e sem texto depois."""
+
+# ------------------------------------------------------------------ FÁCEIS
+[[caso]]
+id = "raciocinio.troco"
+dificuldade = "facil"
+prompt = "Cada caneta custa R$ 3,50. Comprei 7 canetas e paguei com uma nota de R$ 50. Quanto recebi de troco, em reais?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 25.5, tolerancia = 0.001 }]
+
+[[caso]]
+id = "raciocinio.horario-trem"
+dificuldade = "facil"
+consistencia = true
+prompt = "Um trem sai às 14h45 e a viagem dura 2 horas e 50 minutos. A que horas ele chega? Responda no formato HH:MM."
+checks = [{ tipo = "resposta_final", esperado_regex = '^\s*17\s*[:h]\s*35' }]
+
+[[caso]]
+id = "raciocinio.mais-baixa"
+dificuldade = "facil"
+prompt = "Ana é mais alta que Bia. Bia é mais alta que Carla. Dani é mais alta que Ana. Quem é a mais baixa?"
+checks = [{ tipo = "resposta_final", esperado = ["Carla"] }]
+
+[[caso]]
+id = "raciocinio.porcentagem"
+dificuldade = "facil"
+prompt = "Quanto é 15% de 240?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 36 }]
+
+[[caso]]
+id = "raciocinio.sequencia"
+dificuldade = "facil"
+prompt = "Qual o próximo número da sequência: 2, 6, 18, 54, ...?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 162 }]
+
+[[caso]]
+id = "raciocinio.minutos"
+dificuldade = "facil"
+prompt = "Quantos minutos há em 3,5 horas?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 210 }]
+
+# ------------------------------------------------------------------ MÉDIOS
+[[caso]]
+id = "raciocinio.caderno-caneta"
+dificuldade = "medio"
+consistencia = true
+prompt = """Um caderno e uma caneta custam juntos R$ 11,00. O caderno custa R$ 10,00 a mais que a caneta. \
+Quanto custa a caneta, em reais?"""
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 0.5, tolerancia = 0.001 }]
+
+[[caso]]
+id = "raciocinio.dia-da-semana"
+dificuldade = "medio"
+prompt = """Hoje é quarta-feira, 10 de março de 2027. Que dia da semana será 1º de abril de 2027? \
+Responda só com o nome do dia (ex.: segunda-feira)."""
+checks = [{ tipo = "resposta_final", esperado_regex = '^\s*quinta' }]
+
+[[caso]]
+id = "raciocinio.dois-dados"
+dificuldade = "medio"
+prompt = "Lançando dois dados comuns de seis faces, qual a probabilidade de a soma ser 7? Responda como fração ou decimal."
+checks = [{ tipo = "resposta_final", formato = "probabilidade", esperado = 0.166667, tolerancia = 0.002 }]
+
+[[caso]]
+id = "raciocinio.torneiras"
+dificuldade = "medio"
+prompt = "Uma torneira enche um tanque em 6 horas; outra enche o mesmo tanque em 3 horas. Abertas juntas, em quantas horas enchem o tanque?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 2, tolerancia = 0.01 }]
+
+[[caso]]
+id = "raciocinio.pets"
+dificuldade = "medio"
+prompt = """Davi, Eva e Fábio têm, cada um, um animal diferente: gato, cão ou peixe. \
+Davi não tem gato nem peixe. Eva não tem gato. Quem tem o gato?"""
+checks = [{ tipo = "resposta_final", esperado = ["Fábio", "Fabio"] }]
+
+[[caso]]
+id = "raciocinio.variacao-percentual"
+dificuldade = "medio"
+consistencia = true
+prompt = "Um produto subiu 20% e, no mês seguinte, caiu 20%. Qual foi a variação total do preço, em porcentagem? (use sinal negativo se caiu)"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = -4, tolerancia = 0.01 }]
+
+[[caso]]
+id = "raciocinio.divisiveis"
+dificuldade = "medio"
+prompt = "Quantos números inteiros de 1 a 100 (inclusive) são divisíveis por 3 ou por 5?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 47 }]
+
+[[caso]]
+id = "raciocinio.relogio-atrasado"
+dificuldade = "medio"
+prompt = """Um relógio atrasa 3 minutos a cada hora. Ele foi acertado ao meio-dia (12:00). \
+Que horário ele vai mostrar quando o horário correto for 20:00? Responda no formato HH:MM."""
+checks = [{ tipo = "resposta_final", esperado_regex = '^\s*19\s*[:h]\s*36' }]
+
+[[caso]]
+id = "raciocinio.idades"
+dificuldade = "medio"
+prompt = "Hoje a idade de um pai é o triplo da idade do filho. Daqui a 12 anos, será o dobro. Quantos anos o pai tem hoje?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 36 }]
+
+[[caso]]
+id = "raciocinio.bissexto"
+dificuldade = "medio"
+prompt = "Quantos dias há de 15/02/2028 até 15/03/2028? (conte a diferença entre as datas, não os dias inclusivos)"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 29 }]
+
+# ------------------------------------------------------------------ DIFÍCEIS
+[[caso]]
+id = "raciocinio.anagramas-banana"
+dificuldade = "dificil"
+prompt = "Quantos anagramas distintos tem a palavra BANANA?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 60 }]
+
+[[caso]]
+id = "raciocinio.monty-hall-4"
+dificuldade = "dificil"
+consistencia = true
+max_tokens = 1000
+prompt = """Há 4 portas; atrás de uma está um carro e atrás das outras, nada. Você escolhe uma porta. \
+O apresentador, que sabe onde está o carro, abre uma das outras portas que está vazia. \
+Você então troca para uma das duas portas fechadas restantes, escolhida ao acaso. \
+Qual a probabilidade de ganhar o carro? Responda como fração."""
+checks = [{ tipo = "resposta_final", formato = "probabilidade", esperado = 0.375, tolerancia = 0.002 }]
+
+[[caso]]
+id = "raciocinio.ultimo-digito"
+dificuldade = "dificil"
+prompt = "Qual é o último dígito de 7 elevado a 2027?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 3 }]
+
+[[caso]]
+id = "raciocinio.comissao"
+dificuldade = "dificil"
+prompt = "De um grupo de 5 homens e 4 mulheres, quantas comissões de 3 pessoas podem ser formadas com pelo menos uma mulher?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 74 }]
+
+[[caso]]
+id = "raciocinio.cavaleiros"
+dificuldade = "dificil"
+max_tokens = 1000
+prompt = """Numa ilha, cavaleiros sempre falam a verdade e mentirosos sempre mentem. \
+A diz: "B é mentiroso." B diz: "A e eu somos do mesmo tipo." \
+Quem é o cavaleiro? Responda apenas com a letra (A ou B)."""
+checks = [{ tipo = "resposta_final", esperado_regex = '^\W*A\W*$' }]

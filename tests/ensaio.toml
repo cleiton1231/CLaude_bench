@@ -1,0 +1,5 @@
+# Perfil usado só pelo scripts/ensaio_sem_gpu.sh (servidor falso).
+nome = "Ensaio (servidor falso)"
+gguf = "/dev/null"
+ctx = 16384
+pensamento = false
