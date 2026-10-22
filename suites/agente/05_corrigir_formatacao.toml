@@ -1,0 +1,60 @@
+# Cenário agêntico: dois defeitos em módulos diferentes (import quebrado + formato de moeda errado).
+id = "agente.corrigir-formatacao"
+dificuldade = "medio"
+max_turnos = 14
+ferramentas = ["listar_arquivos", "ler_arquivo", "buscar_no_projeto", "escrever_arquivo", "rodar_testes", "finalizar"]
+tarefa = "O relatório financeiro quebrou e os valores saem no formato americano. Corrija o código para os testes passarem, sem alterar os testes. Valores devem sair no padrão brasileiro (R$ 1.234,50)."
+checks = [
+  { tipo = "testes_passam", peso = 3 },
+  { tipo = "arquivos_intactos", caminhos = ["tests/test_relatorio.py"] },
+  { tipo = "finalizou" },
+]
+
+[arquivos]
+"relatorio/__init__.py" = ""
+"tests/__init__.py" = ""
+"relatorio/util.py" = '''
+def formatar_moeda(valor):
+    """Formata um número como moeda brasileira: 1234.5 -> 'R$ 1.234,50'."""
+    return f"R$ {valor:,.2f}"
+'''
+"relatorio/resumo.py" = '''
+from relatorio.util import moeda
+
+
+def linha_total(itens):
+    total = sum(preco * qtd for _, preco, qtd in itens)
+    return f"Total: {moeda(total)}"
+'''
+"tests/test_relatorio.py" = '''
+import unittest
+
+from relatorio.resumo import linha_total
+from relatorio.util import formatar_moeda
+
+
+class TestRelatorio(unittest.TestCase):
+    def test_moeda(self):
+        self.assertEqual(formatar_moeda(1234.5), "R$ 1.234,50")
+        self.assertEqual(formatar_moeda(0), "R$ 0,00")
+        self.assertEqual(formatar_moeda(1000000), "R$ 1.000.000,00")
+
+    def test_total(self):
+        itens = [("caneta", 3.5, 2), ("caderno", 1200, 1)]
+        self.assertEqual(linha_total(itens), "Total: R$ 1.207,00")
+'''
+
+[referencia]
+"relatorio/util.py" = '''
+def formatar_moeda(valor):
+    s = f"{valor:,.2f}"
+    return "R$ " + s.replace(",", "X").replace(".", ",").replace("X", ".")
+'''
+"relatorio/resumo.py" = '''
+from relatorio.util import formatar_moeda
+
+
+def linha_total(itens):
+    total = sum(preco * qtd for _, preco, qtd in itens)
+    return f"Total: {formatar_moeda(total)}"
+'''

@@ -1,0 +1,13 @@
+# Copie para config/selecao.toml (ou rode: python3 -m prova escolher).
+# Escolha uma rodada de config/rodadas/ e, se quiser, sobrescreva campos dela.
+
+rodada = "completa"
+
+# Exemplos de ajuste (descomente):
+# suites = ["codigo", "ferramentas"]           # ou "todas"
+# etapas = ["desempenho", "suites", "agente"]  # desempenho suites agente contexto consistencia criticos
+# dificuldades = ["medio", "dificil"]          # cuidado: sem os fáceis o ENEM perde a âncora
+# incluir = ["codigo.*", "agente.*"]           # globs de id de caso (vazio = todos)
+# excluir = ["redacao.local-vs-nuvem"]
+# repeticoes_criticos = 4
+# repeticoes_criticos_agente = 2

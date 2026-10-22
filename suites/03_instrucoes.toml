@@ -3,7 +3,7 @@
 
 suite = "instrucoes"
 categoria = "instrucoes"
-versao = 1
+versao = 2
 
 [padrao]
 max_tokens = 400
@@ -11,6 +11,7 @@ max_tokens = 400
 # ------------------------------------------------------------------ FÁCEIS
 [[caso]]
 id = "instrucoes.cinco-frutas"
+exemplo_bom = "Manga\nMamão\nAbacaxi\nMaracujá\nGoiaba"
 dificuldade = "facil"
 consistencia = true
 prompt = "Liste exatamente 5 frutas tropicais, uma por linha, sem numeração, sem marcadores e sem nenhum texto antes ou depois."
@@ -21,12 +22,14 @@ checks = [
 
 [[caso]]
 id = "instrucoes.sim-ou-nao"
+exemplo_bom = "SIM"
 dificuldade = "facil"
 prompt = "Responda apenas com SIM ou NÃO, sem mais nada: a água pura ferve a 100 °C ao nível do mar?"
 checks = [{ tipo = "regex", padrao = '\A\s*\**sim\**\.?\s*\Z' }]
 
 [[caso]]
 id = "instrucoes.minusculas"
+exemplo_bom = "o mar guarda segredos que a areia não conta."
 dificuldade = "facil"
 prompt = "Escreva uma única frase sobre o mar usando somente letras minúsculas (nenhuma letra maiúscula)."
 checks = [
@@ -37,6 +40,7 @@ checks = [
 
 [[caso]]
 id = "instrucoes.json-simples"
+exemplo_bom = '{"nome": "Lucas", "idade": 23}'
 dificuldade = "facil"
 consistencia = true
 prompt = 'Converta para JSON com as chaves "nome" (texto) e "idade" (número inteiro): "Lucas tem 23 anos." Responda só com o JSON.'
@@ -45,6 +49,7 @@ checks = [{ tipo = "json", tipo_json = "objeto", chaves = ["nome", "idade"], som
 # ------------------------------------------------------------------ MÉDIOS
 [[caso]]
 id = "instrucoes.api-40-palavras"
+exemplo_bom = "API é um conjunto de regras que permite que um programa peça dados ou serviços a outro, sem conhecer o código interno dele."
 dificuldade = "medio"
 prompt = "Explique o que é uma API em no máximo 40 palavras, sem usar a palavra \"interface\"."
 checks = [
@@ -54,6 +59,7 @@ checks = [
 
 [[caso]]
 id = "instrucoes.tres-topicos"
+exemplo_bom = "- Use senhas longas e únicas\n- Ative a verificação em duas etapas\n- Guarde tudo num gerenciador de senhas"
 dificuldade = "medio"
 consistencia = true
 prompt = """Escreva 3 dicas de segurança de senhas. Cada dica numa linha começando com "- " e com no máximo \
@@ -67,6 +73,7 @@ checks = [
 
 [[caso]]
 id = "instrucoes.traducao-seca"
+exemplo_bom = "The cat has been sleeping on the sofa since early morning."
 dificuldade = "medio"
 prompt = "Traduza para o inglês e responda somente com a tradução, sem aspas: O gato dorme no sofá desde cedo."
 checks = [
@@ -78,12 +85,14 @@ checks = [
 
 [[caso]]
 id = "instrucoes.json-primos"
+exemplo_bom = "[11, 13, 17, 19]"
 dificuldade = "medio"
 prompt = "Retorne um array JSON com os quatro primeiros números primos maiores que 10. Apenas o JSON, nada mais."
 checks = [{ tipo = "json", igual = [11, 13, 17, 19] }]
 
 [[caso]]
 id = "instrucoes.moldura-email"
+exemplo_bom = "Prezado cliente, informamos que o sistema passará por manutenção programada neste sábado, das 22h às 2h. Durante esse período o acesso ficará indisponível. Atenciosamente, Equipe de Suporte"
 dificuldade = "medio"
 prompt = """Escreva um aviso curto de manutenção programada do sistema para sábado, das 22h às 2h. \
 A resposta deve começar exatamente com "Prezado cliente," e terminar exatamente com "Atenciosamente, Equipe de Suporte". \
@@ -97,6 +106,7 @@ checks = [
 
 [[caso]]
 id = "instrucoes.duas-frases"
+exemplo_bom = "O céu é azul porque a luz do Sol se espalha nas moléculas do ar. Esse espalhamento de Rayleigh é muito mais forte para comprimentos de onda curtos, como o azul."
 dificuldade = "medio"
 prompt = "Em exatamente duas frases, explique por que o céu é azul."
 checks = [
@@ -106,12 +116,14 @@ checks = [
 
 [[caso]]
 id = "instrucoes.palavra-reversa"
+exemplo_bom = "o-d-e-p-í-p-e-l-e-l-a-r-a-p"
 dificuldade = "medio"
 prompt = "Escreva a palavra \"paralelepípedo\" de trás para frente, com as letras separadas por hífen, e nada mais."
 checks = [{ tipo = "regex", padrao = '\A\s*o-d-e-p-[ií]-p-e-l-e-l-a-r-a-p\s*\.?\s*\Z' }]
 
 [[caso]]
 id = "instrucoes.paragrafo-solar"
+exemplo_bom = "A energia solar residencial usa painéis com células de silício para converter luz em eletricidade pelo efeito fotovoltaico. A corrente contínua gerada passa por um inversor, que a transforma em corrente alternada compatível com a rede da casa. Em muitas cidades brasileiras, o sistema se paga em poucos anos, porque o excedente gera créditos na conta de luz. Manutenção é simples: limpeza periódica dos módulos e acompanhamento da produção pelo aplicativo do inversor."
 dificuldade = "medio"
 max_tokens = 500
 prompt = """Escreva um único parágrafo de 60 a 90 palavras sobre energia solar residencial. Ele deve conter \
@@ -126,6 +138,7 @@ checks = [
 # ------------------------------------------------------------------ DIFÍCEIS
 [[caso]]
 id = "instrucoes.sistema-json"
+exemplo_bom = '{"resposta": "Paris"}'
 dificuldade = "dificil"
 consistencia = true
 sistema = 'Você é uma API. Responda SEMPRE e SOMENTE com um objeto JSON no formato {"resposta": "<texto>"}, sem cercas de código.'
@@ -137,6 +150,7 @@ checks = [
 
 [[caso]]
 id = "instrucoes.tabela-markdown"
+exemplo_bom = "| Linguagem | Ano | Criador(es) |\n|---|---|---|\n| Python | 1991 | Guido van Rossum |\n| C | 1972 | Dennis Ritchie |\n| Java | 1995 | James Gosling |"
 dificuldade = "dificil"
 prompt = """Gere uma tabela Markdown com as colunas Linguagem | Ano | Criador(es) para Python, C e Java \
 (ano da primeira versão pública). Nenhum texto fora da tabela."""
@@ -151,6 +165,7 @@ checks = [
 
 [[caso]]
 id = "instrucoes.negrito-unico"
+exemplo_bom = "1. Ferva a água.\n2. Coloque o pó no coador.\n3. Encaixe o **filtro** de papel no suporte.\n4. Despeje a água devagar."
 dificuldade = "dificil"
 prompt = """Escreva uma lista numerada (1., 2., 3., 4.) com 4 passos para passar café coado. \
 O passo 3 deve conter a palavra filtro em negrito (**filtro**). Nenhum outro trecho da resposta pode ter \
@@ -164,6 +179,7 @@ checks = [
 
 [[caso]]
 id = "instrucoes.lipograma"
+exemplo_bom = "O sol nos ilumine com seu brilho forte e bonito."
 dificuldade = "dificil"
 prompt = "Escreva uma frase de pelo menos 6 palavras sobre o sol SEM usar a letra \"a\" (nem com acento: á, à, â, ã)."
 checks = [
@@ -171,3 +187,110 @@ checks = [
   { tipo = "palavras", min = 6 },
   { tipo = "regex", padrao = '\bsol\b' },
 ]
+
+# ------------------------------------------------------------------ v2 (checks `predicado` rodam na sandbox)
+[[caso]]
+id = "instrucoes.tres-paragrafos"
+dificuldade = "medio"
+max_tokens = 500
+prompt = """Explique o que é um compilador em exatamente 3 parágrafos, separados por uma linha em branco. \
+O segundo parágrafo deve ter uma única frase. Sem listas e sem títulos."""
+checks = [
+  { tipo = "paragrafos", min = 3, max = 3, peso = 2 },
+  { tipo = "predicado", codigo = '''
+import re
+def ok(t):
+    ps = [p for p in re.split(r"\n\s*\n", t.strip()) if p.strip()]
+    if len(ps) < 2:
+        return False, "menos de 2 parágrafos"
+    n = len([f for f in re.split(r"(?<=[.!?])\s+", ps[1].strip()) if re.search(r"\w", f)])
+    return n == 1, f"2º parágrafo com {n} frase(s)"
+''' },
+  { tipo = "nao_regex", padrao = '^\s*(#|[-*•]|\d+[.)])' },
+]
+exemplo_bom = """Um compilador é um programa que traduz código-fonte escrito numa linguagem de alto nível para outra linguagem, normalmente código de máquina. Ele permite que o programador escreva em C, Rust ou Java sem lidar com instruções do processador.
+
+A tradução passa por análise léxica, sintática e semântica, seguida de otimização e geração de código.
+
+O resultado é um executável que roda direto no hardware, geralmente mais rápido que código interpretado. Erros de tipo e de sintaxe são apontados antes da execução."""
+
+[[caso]]
+id = "instrucoes.acrostico"
+dificuldade = "dificil"
+prompt = """Escreva um acróstico com a palavra REDE sobre redes de computadores: exatamente 4 linhas, cada uma \
+começando pela letra correspondente (R, E, D, E). Escreva só as 4 linhas, sem título."""
+checks = [{ tipo = "predicado", peso = 2, codigo = '''
+import re
+def ok(t):
+    linhas = [l for l in t.strip().splitlines() if l.strip()]
+    if len(linhas) != 4:
+        return False, f"{len(linhas)} linhas"
+    iniciais = "".join((re.search(r"[A-Za-zÀ-ÿ]", l) or re.search(r".", "?")).group(0).upper() for l in linhas)
+    return iniciais == "REDE", f"iniciais {iniciais}"
+''' }]
+exemplo_bom = """Roteadores encaminham pacotes pelo caminho certo,
+Endereços IP identificam cada máquina,
+Dados viajam em quadros e segmentos,
+Enlaces físicos ligam tudo isso."""
+
+[[caso]]
+id = "instrucoes.paises-ordem"
+dificuldade = "dificil"
+consistencia = true
+prompt = """Liste 5 países da América do Sul em ordem alfabética, numerados de 1 a 5, um por linha. Todos devem ter \
+nome com mais de 5 letras, sem repetir. Nada além da lista."""
+checks = [{ tipo = "predicado", peso = 3, codigo = '''
+import re, unicodedata
+PAISES = {"argentina", "bolivia", "brasil", "chile", "colombia", "equador", "guiana", "paraguai",
+          "peru", "suriname", "uruguai", "venezuela"}
+def norm(s):
+    s = "".join(c for c in unicodedata.normalize("NFD", s) if unicodedata.category(c) != "Mn")
+    return re.sub(r"[^a-z]", "", s.lower())
+def ok(t):
+    linhas = [l for l in t.strip().splitlines() if l.strip()]
+    if len(linhas) != 5:
+        return False, f"{len(linhas)} linhas"
+    nomes = []
+    for i, l in enumerate(linhas, 1):
+        m = re.match(r"\s*(\d+)[.)]\s*(.+)", l)
+        if not m or int(m.group(1)) != i:
+            return False, f"numeração errada na linha {i}"
+        nomes.append(norm(m.group(2)))
+    if any(n not in PAISES for n in nomes):
+        return False, f"não é país sul-americano: {[n for n in nomes if n not in PAISES]}"
+    if any(len(n) <= 5 for n in nomes):
+        return False, "nome com 5 letras ou menos"
+    if len(set(nomes)) != 5:
+        return False, "repetiu país"
+    return nomes == sorted(nomes), "ordem alfabética" if nomes == sorted(nomes) else "fora de ordem"
+''' }]
+exemplo_bom = "1. Argentina\n2. Bolívia\n3. Brasil\n4. Colômbia\n5. Uruguai"
+
+[[caso]]
+id = "instrucoes.json-coerente"
+dificuldade = "dificil"
+prompt = """Gere um JSON com a chave "alunos": uma lista de 3 objetos, cada um com "nome" (texto), "nota" (número de \
+0 a 10) e "aprovado" (true se nota >= 6, senão false). Inclua pelo menos um aprovado e um reprovado. Só o JSON."""
+checks = [{ tipo = "predicado", peso = 3, codigo = '''
+import json, re
+def ok(t):
+    m = re.search(r"```(?:json)?\s*(.*?)```", t, re.S)
+    try:
+        d = json.loads(m.group(1) if m else t)
+    except Exception as e:
+        return False, f"JSON inválido: {e}"
+    al = d.get("alunos") if isinstance(d, dict) else None
+    if not isinstance(al, list) or len(al) != 3:
+        return False, "alunos não é lista de 3"
+    for a in al:
+        if set(a) != {"nome", "nota", "aprovado"}:
+            return False, f"chaves {sorted(a)}"
+        if not isinstance(a["nome"], str) or isinstance(a["nota"], bool) or not isinstance(a["nota"], (int, float)):
+            return False, "tipos errados"
+        if not 0 <= a["nota"] <= 10 or a["aprovado"] is not (a["nota"] >= 6):
+            return False, f"incoerente: nota {a['nota']} aprovado {a['aprovado']}"
+    if len({a["aprovado"] for a in al}) != 2:
+        return False, "faltou aprovado ou reprovado"
+    return True, "ok"
+''' }]
+exemplo_bom = '{"alunos": [{"nome": "Ana", "nota": 8.5, "aprovado": true}, {"nome": "Beto", "nota": 4, "aprovado": false}, {"nome": "Cris", "nota": 6, "aprovado": true}]}'

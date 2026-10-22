@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .pontuacao import carregar_registros, carregar_notas
+from .executor import teve_erro_infra
+from .pontuacao import carregar_notas, carregar_registros, na_selecao, selecao_da_rodada
 from .suites import todas
 
 
@@ -34,9 +35,10 @@ def _transcricao(reg: dict) -> str:
 
 def gerar(d: Path) -> tuple[Path, int]:
     casos = {c["id"]: c for s in todas() for c in s["casos"]}
-    regs = carregar_registros(d)
+    sel = selecao_da_rodada(d)
+    regs = [r for r in carregar_registros(d) if na_selecao(r, sel)]
     notas = carregar_notas(d)
-    juiz = [r for r in regs if r["avaliacao"] == "juiz"]
+    juiz = [r for r in regs if r["avaliacao"] == "juiz" and not teve_erro_infra(r)]
     L = [f"# Pacote do juiz — {d.name}", "",
          "Leia `JULGAMENTO.md` antes. Dê nota 0–3 a cada caso abaixo e grave em `notas_juiz.json` "
          "(copie `notas_juiz.modelo.json`). Casos automáticos NÃO são reavaliados. "

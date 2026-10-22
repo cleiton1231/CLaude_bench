@@ -1,0 +1,5 @@
+descricao = "Tudo: suítes, agente, contexto, velocidade, consistência e repetição dos críticos. ~32 min a 30 tok/s. Precisa de juiz."
+etapas = "todas"
+suites = "todas"
+repeticoes_criticos = 4
+repeticoes_criticos_agente = 2

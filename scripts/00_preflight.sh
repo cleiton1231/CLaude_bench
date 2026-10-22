@@ -41,8 +41,18 @@ command -v unshare >/dev/null && "$(command -v unshare)" -rn true 2>/dev/null \
   && ok "sandbox sem rede (unshare -rn) disponível" \
   || aviso "unshare -rn indisponível: o código gerado roda SEM isolamento de rede"
 
-prova validar >/dev/null && ok "suítes válidas" || ruim "suítes inválidas (rode: python3 -m prova validar)"
-"$PY" -m unittest -q >/dev/null 2>&1 && ok "testes offline" || ruim "testes offline falharam (rode: python3 -m unittest -v)"
+[[ -f config/local.toml ]] && ok "config/local.toml presente" || aviso "sem config/local.toml (rode scripts/instalar.sh); usando só config/hardware.toml"
+SB="$(prova sandbox | sed -n 's/^nível efetivo: //p')"
+case "$SB" in
+  bwrap*) ok "sandbox: $SB" ;;
+  INDISP*) ruim "sandbox: $SB" ;;
+  *) aviso "sandbox fraca: $SB — instale bubblewrap" ;;
+esac
+prova validar >/dev/null && ok "suítes e seleção válidas" || ruim "suítes/seleção inválidas (rode: python3 -m prova validar)"
+ok "rodada selecionada: $(prova rodada --nome) (mude com scripts/escolher.sh)"
+if [[ "${PROVA_PREFLIGHT_SEM_TESTES:-0}" != "1" ]]; then
+  "$PY" -m unittest -q >/dev/null 2>&1 && ok "testes offline" || ruim "testes offline falharam (rode: python3 -m unittest -v)"
+fi
 
 titulo "estimativa de tempo"
 prova estimar ${1:+"$1"}

@@ -1,0 +1,3 @@
+descricao = "Foco em programação: suíte de código + cenários de agente + velocidade. ~12 min."
+etapas = ["desempenho", "suites", "agente"]
+suites = ["codigo"]

@@ -59,7 +59,12 @@ def carregar(arquivo: Path) -> dict[str, Any]:
 
 
 def todas(nomes: list[str] | None = None) -> list[dict[str, Any]]:
+    """Todas as suítes, ou só as de `nomes` (lista vazia = nenhuma)."""
     suites = [carregar(p) for p in sorted(SUITES.glob("*.toml"))]
-    if nomes:
+    if nomes is not None:
         suites = [s for s in suites if s["suite"] in nomes]
     return suites
+
+
+def nomes_suites() -> list[str]:
+    return [ler_toml(p)["suite"] for p in sorted(SUITES.glob("*.toml"))]

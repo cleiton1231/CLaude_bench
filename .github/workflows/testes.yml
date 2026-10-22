@@ -1,0 +1,31 @@
+name: testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  offline:
+    # Nada aqui usa GPU ou modelo: suítes, verificadores, sandbox, scripts e pipeline com servidor falso.
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Dependências do sistema (sandbox e lint de shell)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap shellcheck
+          # Ubuntu 24.04 bloqueia namespaces sem privilégio via AppArmor; libera para testar o bwrap
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+      - name: Diagnóstico da sandbox
+        run: python -m prova sandbox
+      - name: Testes
+        run: python -m unittest -v
+      - name: Ensaio do pipeline
+        run: scripts/ensaio_sem_gpu.sh

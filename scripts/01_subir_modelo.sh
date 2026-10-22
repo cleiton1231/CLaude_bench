@@ -4,7 +4,7 @@
 source "$(dirname "$0")/_comum.sh"
 PERFIL="${1:?uso: $0 config/modelos/<perfil>.toml}"
 eval "$(prova perfil "$PERFIL")"
-DIR="resultados/$PROVA_ID"
+DIR="$RES/$PROVA_ID"
 if [[ -f "$DIR/meta.json" ]]; then
   echo "AVISO: já existem resultados em $DIR; as etapas vão RETOMAR de onde pararam."
   echo "        Para uma rodada limpa: rm -rf $DIR (ou crie outro perfil)."
@@ -24,8 +24,8 @@ INICIO=$(date +%s.%N)
 env "${PROVA_AMBIENTE[@]}" setsid "$PROVA_BIN" --model "$PROVA_GGUF" --host "$PROVA_HOST" --port "$PROVA_PORTA" \
   "${PROVA_FLAGS[@]}" </dev/null >"$DIR/logs/llama-server.log" 2>&1 &
 PID=$!
-echo "$PID" > resultados/.servidor.pid
-echo "$PROVA_ID" > resultados/.servidor.id
+echo "$PID" > "$RES/.servidor.pid"
+echo "$PROVA_ID" > "$RES/.servidor.id"
 
 for _ in $(seq 1 300); do
   if curl -sf -m 2 "http://$PROVA_HOST:$PROVA_PORTA/health" >/dev/null 2>&1; then
@@ -37,7 +37,7 @@ for _ in $(seq 1 300); do
     fi
     # coleta de sensores em segundo plano até o 10_parar_modelo
     nohup "$RAIZ/scripts/sensores_gpu.sh" "$DIR/sensores.csv" 5 >/dev/null 2>&1 &
-    echo $! > resultados/.sensores.pid
+    echo $! > "$RES/.sensores.pid"
     echo "pronto em ${SEG}s (pid $PID). Log: $DIR/logs/llama-server.log"
     exit 0
   fi

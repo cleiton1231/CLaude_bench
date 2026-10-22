@@ -242,6 +242,19 @@ def _frases(r, chk, caso):
     return ok, f"{n} frases"
 
 
+@check("paragrafos")
+def _paragrafos(r, chk, caso):
+    n = len([p for p in re.split(r"\n\s*\n", r.texto.strip()) if p.strip()])
+    ok = chk.get("min", 0) <= n <= chk.get("max", 10**9)
+    return ok, f"{n} parágrafos"
+
+
+@check("predicado")
+def _predicado(r, chk, caso):
+    """`codigo` define `def ok(texto)` -> bool ou (bool, detalhe). Roda na sandbox."""
+    return sandbox.predicado(chk["codigo"], r.texto)
+
+
 @check("itens")
 def _itens(r, chk, caso):
     itens = [ln for ln in linhas_uteis(r.texto) if RE_ITEM.match(ln)]

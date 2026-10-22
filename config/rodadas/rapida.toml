@@ -1,0 +1,3 @@
+descricao = "Triagem sem juiz: código, raciocínio, instruções, ferramentas e agente. ~15-20 min. Para descartar modelos antes da completa."
+etapas = ["desempenho", "suites", "agente"]
+suites = ["codigo", "raciocinio", "instrucoes", "ferramentas"]

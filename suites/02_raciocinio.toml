@@ -4,7 +4,7 @@
 
 suite = "raciocinio"
 categoria = "raciocinio"
-versao = 1
+versao = 2
 
 [padrao]
 max_tokens = 800
@@ -20,6 +20,7 @@ checks = [{ tipo = "resposta_final", formato = "numero", esperado = 25.5, tolera
 
 [[caso]]
 id = "raciocinio.horario-trem"
+exemplo_bom = "14h45 + 2h50 = 17h35.\nRESPOSTA: 17:35"
 dificuldade = "facil"
 consistencia = true
 prompt = "Um trem sai às 14h45 e a viagem dura 2 horas e 50 minutos. A que horas ele chega? Responda no formato HH:MM."
@@ -60,6 +61,7 @@ checks = [{ tipo = "resposta_final", formato = "numero", esperado = 0.5, toleran
 
 [[caso]]
 id = "raciocinio.dia-da-semana"
+exemplo_bom = "De 10/03 a 01/04 são 22 dias = 3 semanas + 1 dia.\nRESPOSTA: quinta-feira"
 dificuldade = "medio"
 prompt = """Hoje é quarta-feira, 10 de março de 2027. Que dia da semana será 1º de abril de 2027? \
 Responda só com o nome do dia (ex.: segunda-feira)."""
@@ -99,6 +101,7 @@ checks = [{ tipo = "resposta_final", formato = "numero", esperado = 47 }]
 
 [[caso]]
 id = "raciocinio.relogio-atrasado"
+exemplo_bom = "8 h × 3 min = 24 min de atraso.\nRESPOSTA: 19:36"
 dificuldade = "medio"
 prompt = """Um relógio atrasa 3 minutos a cada hora. Ele foi acertado ao meio-dia (12:00). \
 Que horário ele vai mostrar quando o horário correto for 20:00? Responda no formato HH:MM."""
@@ -148,9 +151,86 @@ checks = [{ tipo = "resposta_final", formato = "numero", esperado = 74 }]
 
 [[caso]]
 id = "raciocinio.cavaleiros"
+exemplo_bom = "Se A fosse mentiroso, B seria cavaleiro e mentiria. Contradição.\nRESPOSTA: A"
 dificuldade = "dificil"
 max_tokens = 1000
 prompt = """Numa ilha, cavaleiros sempre falam a verdade e mentirosos sempre mentem. \
 A diz: "B é mentiroso." B diz: "A e eu somos do mesmo tipo." \
 Quem é o cavaleiro? Responda apenas com a letra (A ou B)."""
 checks = [{ tipo = "resposta_final", esperado_regex = '^\W*A\W*$' }]
+
+# ------------------------------------------------------------------ v2: casos para separar modelos fortes
+[[caso]]
+id = "raciocinio.zeros-fatorial"
+dificuldade = "medio"
+prompt = "Com quantos zeros termina o número 100! (100 fatorial)?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 24 }]
+
+[[caso]]
+id = "raciocinio.mil-dias"
+dificuldade = "medio"
+prompt = "Hoje é terça-feira. Que dia da semana será daqui a exatamente 1000 dias? Responda só com o nome do dia."
+checks = [{ tipo = "resposta_final", esperado_regex = '^\s*segunda' }]
+exemplo_bom = "1000 = 7×142 + 6; terça + 6 dias.\nRESPOSTA: segunda-feira"
+
+[[caso]]
+id = "raciocinio.digitos-distintos"
+dificuldade = "medio"
+prompt = "Quantos números naturais de 4 dígitos (de 1000 a 9999) têm todos os dígitos diferentes entre si?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 4536 }]
+
+[[caso]]
+id = "raciocinio.bases"
+dificuldade = "medio"
+prompt = "Quanto é 0x2F + 0b1011, em decimal?"
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 58 }]
+
+[[caso]]
+id = "raciocinio.valor-esperado"
+dificuldade = "medio"
+prompt = """Num jogo você paga R$ 10 para lançar um dado comum e recebe 4 vezes o número que sair, em reais. \
+Qual é o lucro esperado por jogada, em reais? (negativo se for prejuízo)"""
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 4, tolerancia = 0.01 }]
+
+[[caso]]
+id = "raciocinio.caras-seguidas"
+dificuldade = "dificil"
+consistencia = true
+max_tokens = 1200
+prompt = """Uma moeda honesta é lançada 5 vezes. Qual a probabilidade de aparecerem pelo menos duas caras \
+seguidas em algum momento? Responda como fração."""
+checks = [{ tipo = "resposta_final", formato = "probabilidade", esperado = 0.59375, tolerancia = 0.001 }]
+
+[[caso]]
+id = "raciocinio.independencia"
+dificuldade = "dificil"
+prompt = "Em que dia da semana caiu 7 de setembro de 1822 (calendário gregoriano)? Responda só com o nome do dia."
+checks = [{ tipo = "resposta_final", esperado_regex = '^\s*s[áa]bado' }]
+exemplo_bom = "Pelo algoritmo de Zeller...\nRESPOSTA: sábado"
+
+[[caso]]
+id = "raciocinio.juros-dobrar"
+dificuldade = "dificil"
+prompt = """Um investimento rende 1% ao mês, com juros compostos. Qual o MENOR número inteiro de meses para \
+o valor investido pelo menos dobrar?"""
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 70 }]
+
+[[caso]]
+id = "raciocinio.escada"
+dificuldade = "dificil"
+prompt = """Você sobe uma escada de 12 degraus dando passos de 1 ou de 2 degraus por vez. \
+De quantas maneiras diferentes você pode chegar ao topo?"""
+checks = [{ tipo = "resposta_final", formato = "numero", esperado = 233 }]
+
+[[caso]]
+id = "raciocinio.fila-cinco"
+dificuldade = "dificil"
+consistencia = true
+max_tokens = 1200
+prompt = """Ana, Bia, Caio, Davi e Elis estão numa fila, nas posições 1 a 5 (da esquerda para a direita).
+- Davi está na posição do meio.
+- Elis está imediatamente à esquerda de Ana.
+- Caio não está em nenhuma das pontas.
+- Bia está em alguma posição à direita de Caio.
+Quem está na posição 1? Responda só com o nome."""
+checks = [{ tipo = "resposta_final", esperado = ["Elis"] }]

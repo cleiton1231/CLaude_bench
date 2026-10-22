@@ -127,11 +127,14 @@ def gerar_casos(cli: Cliente, ctx: int, seed: int, reserva: int = 700) -> list[d
     return casos
 
 
-def rodar(cli: Cliente, ctx: int, seed: int, saida: Path,
-          mult_tokens: float = 1.0) -> tuple[list[dict], float]:
+def rodar(cli: Cliente, ctx: int, seed: int, saida: Path, mult_tokens: float = 1.0,
+          sel: dict | None = None) -> tuple[list[dict], float]:
     max_resp = int(96 * mult_tokens)
     reserva = 600 + max_resp + (cli.folga_pensamento if cli.pensamento else 0)
     casos = gerar_casos(cli, ctx, seed, reserva)
+    if sel is not None:
+        from .selecao import filtrar
+        casos = filtrar(casos, sel)
     regs = []
     pico = gpu.vram_usada() or 0
     with saida.open("w", encoding="utf-8") as f:
@@ -142,12 +145,14 @@ def rodar(cli: Cliente, ctx: int, seed: int, saida: Path,
             checks = avaliar(r, c)
             reg = {"id": c["id"], "suite": "contexto", "categoria": "contexto",
                    "dificuldade": c["dificuldade"], "critico": False, "avaliacao": "auto",
-                   "tamanho_alvo": c["tamanho"], "q_auto": 1.0 if checks[0]["ok"] else 0.0,
+                   "tamanho_alvo": c["tamanho"], "erro_infra": bool(r.erro),
+                   "q_auto": None if r.erro else (1.0 if checks[0]["ok"] else 0.0),
                    "checks": checks, "resposta": r.resumo(), "quando": time.strftime("%Y-%m-%dT%H:%M:%S")}
             f.write(json.dumps(reg, ensure_ascii=False) + "\n")
             f.flush()
             regs.append(reg)
             pp = f"{r.pp_tps:.0f}" if r.pp_tps else "-"
-            print(f"  {c['id']:<36} {'OK' if checks[0]['ok'] else 'ERRO':<5} prompt={r.tokens_prompt:>6} tok "
+            marca = "INFRA" if r.erro else "OK" if checks[0]["ok"] else "ERRO"
+            print(f"  {c['id']:<36} {marca:<5} prompt={r.tokens_prompt:>6} tok "
                   f"pp={pp:>5} tok/s {r.segundos:>5.1f}s  {checks[0]['detalhe'][:50]}", flush=True)
     return regs, pico

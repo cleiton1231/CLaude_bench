@@ -1,0 +1,5 @@
+descricao = "Tudo que é corrigido por máquina (sem ceticismo e redação). ~30 min. Resultado 100% reprodutível."
+etapas = ["desempenho", "suites", "agente", "contexto", "consistencia", "criticos"]
+suites = ["codigo", "raciocinio", "instrucoes", "ferramentas"]
+repeticoes_criticos = 4
+repeticoes_criticos_agente = 2

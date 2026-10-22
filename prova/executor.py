@@ -80,10 +80,15 @@ def rodar_caso(cli: Cliente, caso: dict, seed: int, temperatura: float = 0.0,
     checks = avaliar(total, caso)
     peso = sum(c["peso"] for c in checks) or 1
     q_auto = sum(c["peso"] for c in checks if c["ok"]) / peso if checks else None
+    # erro de HTTP/timeout (já com retentativa) é falha do servidor/template, não do modelo:
+    # o caso fica fora da nota e é refeito na próxima execução da etapa
+    erro_infra = bool(total.erro)
+    if erro_infra:
+        q_auto = None
     return {
         "id": caso["id"], "suite": caso["suite"], "categoria": caso["categoria"],
         "dificuldade": caso["dificuldade"], "critico": caso["critico"],
-        "avaliacao": caso["avaliacao"], "hash": hash_caso(caso),
+        "avaliacao": caso["avaliacao"], "hash": hash_caso(caso), "erro_infra": erro_infra,
         "seed": seed, "temperatura": temperatura,
         "resposta": total.resumo(), "checks": checks,
         "q_auto": None if caso["avaliacao"] == "juiz" else q_auto,
@@ -92,23 +97,41 @@ def rodar_caso(cli: Cliente, caso: dict, seed: int, temperatura: float = 0.0,
     }
 
 
+def teve_erro_infra(r: dict) -> bool:
+    """Erro de servidor. Registros da v1 não tinham a marca: deduz pelo campo `erro` da resposta."""
+    if "erro_infra" in r:
+        return bool(r["erro_infra"])
+    return bool((r.get("resposta") or {}).get("erro") or r.get("erro"))
+
+
+def ainda_vale(r: dict, hashes: dict[str, str]) -> bool:
+    """Resultado antigo reaproveitável: caso existe, não mudou e não teve erro de servidor.
+    Registro sem hash (versão antiga do agente) vale enquanto o cenário existir."""
+    return r["id"] in hashes and r.get("hash", hashes[r["id"]]) == hashes[r["id"]] and not teve_erro_infra(r)
+
+
 def ler_jsonl(arq: Path) -> list[dict]:
     if not arq.exists():
         return []
     return [json.loads(ln) for ln in arq.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
 
+def gravar_jsonl(arq: Path, regs: list[dict]) -> None:
+    arq.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in regs), encoding="utf-8")
+
+
 def rodar_suite(cli: Cliente, suite: dict, saida: Path, seed: int, mult_tokens: float = 1.0,
-                refazer: bool = False, so_ids: set[str] | None = None) -> list[dict]:
+                refazer: bool = False, casos: list[dict] | None = None) -> list[dict]:
+    """Roda `casos` (padrão: todos da suíte). Resultados de casos fora da seleção são preservados."""
     saida.parent.mkdir(parents=True, exist_ok=True)
-    feitos = {} if refazer else {r["id"]: r for r in ler_jsonl(saida)}
-    casos = [c for c in suite["casos"] if not so_ids or c["id"] in so_ids]
-    # resultado antigo só vale se o caso não mudou desde então
-    validos = {cid: r for cid, r in feitos.items()
-               if any(c["id"] == cid and hash_caso(c) == r.get("hash") for c in casos)}
-    if refazer or len(validos) != len(feitos):
-        saida.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in validos.values()),
-                         encoding="utf-8")
+    casos = suite["casos"] if casos is None else casos
+    hashes = {c["id"]: hash_caso(c) for c in suite["casos"]}
+    feitos = ler_jsonl(saida)
+    # vale o resultado antigo se o caso existe, não mudou e não teve erro de infraestrutura
+    validos = {r["id"]: r for r in feitos
+               if ainda_vale(r, hashes) and not (refazer and any(c["id"] == r["id"] for c in casos))}
+    if len(validos) != len(feitos):
+        gravar_jsonl(saida, list(validos.values()))
     t0 = time.monotonic()
     novos = 0
     for i, caso in enumerate(casos, 1):
@@ -120,11 +143,13 @@ def rodar_suite(cli: Cliente, suite: dict, saida: Path, seed: int, mult_tokens: 
             f.write(json.dumps(reg, ensure_ascii=False) + "\n")
         validos[caso["id"]] = reg
         r = reg["resposta"]
-        marca = ("?" if reg["avaliacao"] == "juiz" else
+        marca = ("INFRA" if reg["erro_infra"] else "?" if reg["avaliacao"] == "juiz" else
                  "OK" if reg["q_auto"] == 1 else "parcial" if reg["q_auto"] else "ERRO")
         decorrido = time.monotonic() - t0
         restante = (len(casos) - i) * decorrido / max(novos, 1)
         tg = f"{r['tg_tps']:.1f}" if r["tg_tps"] else "-"
         print(f"  [{i:>3}/{len(casos)}] {caso['id']:<42} {marca:<7} {r['tokens_saida']:>5} tok "
               f"{r['segundos']:>5.1f}s {tg:>5} tok/s  ~{restante / 60:.1f} min restantes", flush=True)
+        if reg["erro_infra"]:
+            print(f"        erro do servidor: {r['erro'][:160]}", flush=True)
     return [validos[c["id"]] for c in casos if c["id"] in validos]

@@ -57,6 +57,8 @@ class Cliente:
         self.pensamento = pensamento
         self.template_kwargs = template_kwargs
         self.folga_pensamento = folga_pensamento  # tokens extras por chamada para o raciocínio
+        self.tentativas = 2  # erro de HTTP/timeout: tenta mais uma vez antes de desistir
+        self.espera_retentativa = 3.0
 
     # ---------- HTTP ----------
     def _req(self, metodo: str, caminho: str, corpo: dict | None = None,
@@ -119,11 +121,15 @@ class Cliente:
         if extra:
             corpo.update(extra)
 
-        t0 = time.monotonic()
-        try:
-            dados = self._req("POST", "/v1/chat/completions", corpo)
-        except ErroCliente as e:
-            return Resposta(erro=str(e), segundos=time.monotonic() - t0)
+        for tentativa in range(self.tentativas):
+            t0 = time.monotonic()
+            try:
+                dados = self._req("POST", "/v1/chat/completions", corpo)
+                break
+            except ErroCliente as e:
+                if tentativa + 1 == self.tentativas:
+                    return Resposta(erro=str(e), segundos=time.monotonic() - t0)
+                time.sleep(self.espera_retentativa)
         seg = time.monotonic() - t0
 
         escolha = (dados.get("choices") or [{}])[0]

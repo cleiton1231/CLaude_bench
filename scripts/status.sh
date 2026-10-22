@@ -2,7 +2,7 @@
 # Mostra o andamento de um modelo: etapas concluídas, etapa em fundo, últimas linhas do log.
 source "$(dirname "$0")/_comum.sh"
 ID="${1:?uso: $0 <id>}"
-D="resultados/$ID"
+D="$RES/$ID"
 [[ -f "$D/meta.json" ]] || { echo "sem resultados para $ID"; exit 1; }
 "$PY" - "$D/meta.json" <<'PY'
 import json, sys

@@ -1,0 +1,3 @@
+descricao = "Só velocidade (prefill/geração/VRAM) e contexto longo. ~5 min."
+etapas = ["desempenho", "contexto"]
+suites = []

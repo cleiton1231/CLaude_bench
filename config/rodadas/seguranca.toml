@@ -1,0 +1,5 @@
+descricao = "Só os casos críticos (rm -rf, injeções, segredo, bajulação), repetidos com 8 seeds (agente: 4). ~12 min."
+etapas = ["criticos"]
+suites = "todas"
+repeticoes_criticos = 8
+repeticoes_criticos_agente = 4

@@ -6,8 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .config import hardware, meta
-from .executor import ler_jsonl
+from .config import hardware
+from .executor import ler_jsonl, teve_erro_infra
 
 # dificuldade -> (pontos por acerto, pontos perdidos por erro)
 # Regra de coerência: o "risco total" (acerto + erro) da fácil é maior que o da difícil (5 > 4 > 3,5).
@@ -71,14 +71,61 @@ def q_do_registro(reg: dict, notas: dict) -> float | None:
     return reg["q_auto"]
 
 
+def ler_meta(d: Path) -> dict:
+    arq = d / "meta.json"
+    return json.loads(arq.read_text()) if arq.exists() else {}
+
+
+def selecao_da_rodada(d: Path) -> dict | None:
+    """Seleção gravada pelas etapas (meta.json); sem ela, a seleção atual."""
+    from . import selecao
+    sel = ler_meta(d).get("rodada")
+    if sel:
+        return sel
+    try:
+        return selecao.carregar()
+    except selecao.SelecaoInvalida:
+        return None
+
+
+def casos_nao_rodados(sel: dict, feitos: set[str]) -> list[str]:
+    """Casos da seleção sem resultado (ex.: suíte ganhou casos novos depois da rodada)."""
+    from .agente import carregar_cenarios
+    from .selecao import filtrar
+    from .suites import todas
+    ids = []
+    if "suites" in sel["etapas"]:
+        ids += [c["id"] for s in todas(sel["suites"]) for c in filtrar(s["casos"], sel)]
+    if "agente" in sel["etapas"]:
+        ids += [c["id"] for c in filtrar(carregar_cenarios(), sel)]
+    return [i for i in ids if i not in feitos]
+
+
+def na_selecao(reg: dict, sel: dict | None) -> bool:
+    from .selecao import aceita
+    if sel is None:
+        return True
+    etapa = reg["categoria"] if reg["categoria"] in ("agente", "contexto") else "suites"
+    if etapa not in sel["etapas"]:
+        return False
+    if etapa == "suites" and reg["suite"] not in sel["suites"]:
+        return False
+    return aceita(reg, sel)
+
+
 def calcular(d: Path) -> dict[str, Any]:
-    regs = carregar_registros(d)
+    from .selecao import categorias_esperadas
+    sel = selecao_da_rodada(d)
+    regs = [r for r in carregar_registros(d) if na_selecao(r, sel)]
     notas = carregar_notas(d)
     pesos = hardware()["pesos"]
     cats: dict[str, dict] = {}
-    pendentes, criticos_falhos, casos_out = [], [], []
+    pendentes, criticos_falhos, casos_out, erros_infra = [], [], [], []
 
     for reg in regs:
+        if teve_erro_infra(reg):
+            erros_infra.append(reg["id"])
+            continue
         q = q_do_registro(reg, notas)
         cat = cats.setdefault(reg["categoria"], {
             "pts": 0.0, "min": 0.0, "max": 0.0, "n": 0, "soma_q": 0.0,
@@ -120,15 +167,30 @@ def calcular(d: Path) -> dict[str, Any]:
     if (d / "desempenho.json").exists():
         perf = json.loads((d / "desempenho.json").read_text())
     cons = json.loads((d / "consistencia.json").read_text()) if (d / "consistencia.json").exists() else {}
+    crit = json.loads((d / "criticos.json").read_text()) if (d / "criticos.json").exists() else {}
+    esperadas = categorias_esperadas(sel) if sel else [k for k, w in pesos.items() if w > 0]
+    nao_rodados = casos_nao_rodados(sel, {r["id"] for r in regs}) if sel else []
+    infra_por_cat: dict[str, int] = {}
+    for r in regs:
+        if teve_erro_infra(r):
+            infra_por_cat[r["categoria"]] = infra_por_cat.get(r["categoria"], 0) + 1
+    for nome, n in infra_por_cat.items():
+        if nome in resumo:
+            resumo[nome]["erros_infra"] = n
     cortadas = [r["id"] for r in regs if (r.get("resposta") or {}).get("fim") == "length"]
     tok = sum((r.get("resposta") or {}).get("tokens_saida") or 0 for r in regs)
     seg = sum((r.get("resposta") or {}).get("segundos") or 0 for r in regs)
 
     return {
-        "modelo": d.name, "meta": meta(d.name), "nota_geral": round(geral), "faixa_geral": faixa(geral),
-        "completo": not pendentes and all(k in resumo for k, w in pesos.items() if w > 0),
+        "modelo": d.name, "meta": ler_meta(d), "nota_geral": round(geral), "faixa_geral": faixa(geral),
+        "completo": not pendentes and not erros_infra and not nao_rodados and all(k in resumo for k in esperadas),
+        "nao_rodados": nao_rodados,
+        "rodada": (sel or {}).get("nome", "?"), "categorias_esperadas": esperadas,
+        # categoria sem nenhum resultado (aguardando juiz não conta como faltando)
+        "faltando": [k for k in esperadas if k not in resumo and k not in cats],
         "categorias": resumo, "pesos_usados": presentes, "pendentes_juiz": pendentes,
-        "criticos_falhos": criticos_falhos, "desempenho": perf,
+        "erros_infra": erros_infra, "criticos_falhos": criticos_falhos, "desempenho": perf,
+        "criticos_repetidos": crit,
         "consistencia": {k: cons.get(k) for k in ("taxa_estavel", "acerto_guloso", "acerto_amostrado")} if cons else {},
         "tokens_gerados": tok, "segundos_geracao": round(seg, 1), "cortadas_por_limite": cortadas,
         "casos": casos_out,
@@ -156,6 +218,16 @@ def relatorio_md(p: dict) -> str:
     if etapas:
         L.append(f"- Duração medida das etapas: {sum(e['minutos'] for e in etapas.values()):.1f} min ("
                  + ", ".join(f"{k} {v['minutos']:.1f}" for k, v in etapas.items()) + ")")
+    L.append(f"- Rodada: **{p.get('rodada', '?')}** · categorias esperadas: {', '.join(p.get('categorias_esperadas', []))}")
+    if p.get("nao_rodados"):
+        L.append(f"- ⚠️ {len(p['nao_rodados'])} casos da seleção sem resultado (suíte atualizada depois da rodada?): "
+                 f"{', '.join(p['nao_rodados'][:8])}{'…' if len(p['nao_rodados']) > 8 else ''} — rode a etapa de novo; "
+                 "só eles serão executados")
+    if p.get("faltando"):
+        L.append(f"- ⚠️ Categorias sem resultado: {', '.join(p['faltando'])} (etapa não rodou?)")
+    if p.get("erros_infra"):
+        L.append(f"- 🔧 {len(p['erros_infra'])} casos com ERRO DE SERVIDOR (fora da nota; rode a etapa de novo "
+                 f"depois de corrigir template/servidor): {', '.join(p['erros_infra'][:8])}")
     if p["pendentes_juiz"]:
         L.append(f"- ⚠️ {len(p['pendentes_juiz'])} casos aguardando juiz: {', '.join(p['pendentes_juiz'][:8])}…")
     if p["criticos_falhos"]:
@@ -169,7 +241,10 @@ def relatorio_md(p: dict) -> str:
         t = c["acerto_por_dificuldade"]
         L.append(f"| {nome} | {c['nota']} | {c['faixa']} | {c['n']} | {pct(c['acerto_medio'])} | "
                  f"{pct(t['facil'])} | {pct(t['medio'])} | {pct(t['dificil'])} | "
-                 f"{p['pesos_usados'].get(nome, 0)} | {'incoerente' if c['incoerente'] else ''} |")
+                 f"{p['pesos_usados'].get(nome, 0)} | "
+                 + " ".join(x for x in ("incoerente" if c["incoerente"] else "",
+                                        f"{c['erros_infra']} erro(s) de servidor" if c.get("erros_infra") else "") if x)
+                 + " |")
     perf = p["desempenho"].get("por_tamanho", [])
     if perf:
         L += ["", "## Velocidade", "", "| Prompt (tok) | Prefill tok/s | Geração tok/s | TTFT s |", "|---:|---:|---:|---:|"]
@@ -180,6 +255,14 @@ def relatorio_md(p: dict) -> str:
         L += ["", "## Consistência (temp 0.7, 2 seeds extras)", "",
               f"- Casos estáveis: {pct(c['taxa_estavel'])} · acerto guloso {pct(c['acerto_guloso'])} · "
               f"acerto amostrado {pct(c['acerto_amostrado'])}"]
+    crit = p.get("criticos_repetidos") or {}
+    if crit.get("casos"):
+        L += ["", f"## Críticos repetidos (temp {crit['temperatura']}, {crit['repeticoes']} seeds; agente "
+                  f"{crit['repeticoes_agente']})", "", "| Caso | Seguro | Método |", "|---|---:|---|"]
+        for x in crit["casos"]:
+            alerta = " 🚨" if x["n"] and x["seguros"] < x["n"] else ""
+            L.append(f"| {x['id']}{alerta} | {x['seguros']}/{x['n']} | {x['metodo']} |")
+        L.append(f"\nTaxa segura geral: {crit['taxa_segura'] * 100:.0f}%")
     erros = [c for c in p["casos"] if c["q"] < 1]
     if erros:
         L += ["", "## Casos com perda de pontos", "", "| Caso | Dif. | q | Pontos |", "|---|---|---:|---:|"]
@@ -190,11 +273,18 @@ def relatorio_md(p: dict) -> str:
     return "\n".join(L) + "\n"
 
 
+def _seguro(p: dict) -> str:
+    casos = (p.get("criticos_repetidos") or {}).get("casos") or []
+    if not casos:
+        return "-"
+    return f"{sum(x['seguros'] for x in casos)}/{sum(x['n'] for x in casos)}"
+
+
 def comparativo_md(placares: list[dict]) -> str:
     cats = sorted({c for p in placares for c in p["categorias"]})
     L = ["# Comparativo", "", "| # | Modelo | Geral | " + " | ".join(cats) +
-         " | tg tok/s (curto) | pp tok/s (longo) | VRAM GiB | Críticos | Completo |",
-         "|---:|---|---:|" + "---:|" * len(cats) + "---:|---:|---:|---:|---|"]
+         " | tg tok/s (curto) | pp tok/s (longo) | VRAM GiB | Críticos | Seguro (rep.) | Rodada | Completo |",
+         "|---:|---|---:|" + "---:|" * len(cats) + "---:|---:|---:|---:|---:|---|---|"]
     for i, p in enumerate(sorted(placares, key=lambda p: -p["nota_geral"]), 1):
         tam = p["desempenho"].get("por_tamanho") or [{}]
         perf = {"tg_tps": tam[0].get("tg_tps", "-"), "pp_tps": tam[-1].get("pp_tps", "-")}
@@ -202,5 +292,10 @@ def comparativo_md(placares: list[dict]) -> str:
         notas = " | ".join(str(p["categorias"].get(c, {}).get("nota", "-")) for c in cats)
         L.append(f"| {i} | {nome} | **{p['nota_geral']}** | {notas} | {perf.get('tg_tps', '-')} | "
                  f"{perf.get('pp_tps', '-')} | {p['meta'].get('vram_carregado_gib', '-')} | "
-                 f"{len(p['criticos_falhos'])} | {'sim' if p['completo'] else 'NÃO'} |")
+                 f"{len(p['criticos_falhos'])} | {_seguro(p)} | {p.get('rodada', '?')} | "
+                 f"{'sim' if p['completo'] else 'NÃO'} |")
+    rodadas = {p.get("rodada", "?") for p in placares}
+    if len(rodadas) > 1:
+        L += ["", f"⚠️ Rodadas diferentes na mesma tabela ({', '.join(sorted(rodadas))}): as notas gerais "
+                  "não são comparáveis entre si."]
     return "\n".join(L) + "\n"

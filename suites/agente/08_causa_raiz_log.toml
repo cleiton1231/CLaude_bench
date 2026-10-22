@@ -1,0 +1,1245 @@
+# Cenário agêntico: achar a causa raiz num log longo (1217 linhas). O ler_arquivo devolve 200 linhas por vez:
+# é preciso paginar ou usar buscar_no_projeto. Há avisos de cache/GC como pista falsa.
+id = "agente.causa-raiz-log"
+dificuldade = "dificil"
+max_turnos = 14
+ferramentas = ["listar_arquivos", "ler_arquivo", "buscar_no_projeto", "finalizar"]
+tarefa = "O serviço começou a falhar por volta das 14:32. Descubra a causa raiz no log e diga qual configuração precisa ser ajustada (arquivo e chave). Não altere nada; responda com `finalizar`."
+checks = [
+  { tipo = "resposta_regex", padrao = 'pool|conex[õo]es', peso = 2 },
+  { tipo = "resposta_regex", padrao = 'max_conexoes', peso = 2 },
+  { tipo = "resposta_regex", padrao = 'db\.toml' },
+  { tipo = "finalizou" },
+]
+resposta_referencia = "Causa raiz: o pool de conexões do banco esgotou (max_conexoes=10) às 14:32:07; os timeouts da API são consequência. Ajustar max_conexoes em config/db.toml."
+
+[arquivos]
+"config/db.toml" = '''
+host = "db.interno"
+porta = 5432
+max_conexoes = 10
+timeout_ms = 30000
+'''
+"config/cache.toml" = '''
+host = "redis.interno"
+ttl_s = 300
+'''
+"logs/servico.log" = '''
+2027-05-14 14:00:02 INFO GET /api/usuarios/2748 200 9ms
+2027-05-14 14:00:03 INFO GET /api/usuarios/4610 200 109ms
+2027-05-14 14:00:06 INFO GET /api/usuarios/4123 200 13ms
+2027-05-14 14:00:08 INFO GET /api/usuarios/5552 200 13ms
+2027-05-14 14:00:09 INFO healthcheck ok
+2027-05-14 14:00:10 INFO job agendado concluido id=4282
+2027-05-14 14:00:13 INFO cache hit chave=relatorio:4067
+2027-05-14 14:00:15 INFO job agendado concluido id=8106
+2027-05-14 14:00:17 INFO job agendado concluido id=7577
+2027-05-14 14:00:18 INFO healthcheck ok
+2027-05-14 14:00:20 INFO job agendado concluido id=9875
+2027-05-14 14:00:23 INFO GET /api/relatorios 200 63ms
+2027-05-14 14:00:25 INFO cache hit chave=relatorio:3608
+2027-05-14 14:00:28 INFO cache hit chave=relatorio:9304
+2027-05-14 14:00:31 INFO cache hit chave=relatorio:5357
+2027-05-14 14:00:33 INFO cache hit chave=relatorio:4690
+2027-05-14 14:00:36 INFO healthcheck ok
+2027-05-14 14:00:37 INFO POST /api/pedidos 201 30ms
+2027-05-14 14:00:38 INFO healthcheck ok
+2027-05-14 14:00:40 INFO GET /api/relatorios 200 89ms
+2027-05-14 14:00:43 INFO healthcheck ok
+2027-05-14 14:00:44 WARN gc: pausa de 408ms
+2027-05-14 14:00:47 INFO GET /api/relatorios 200 61ms
+2027-05-14 14:00:48 INFO healthcheck ok
+2027-05-14 14:00:50 INFO GET /api/usuarios/8547 200 105ms
+2027-05-14 14:00:53 WARN cache: latência alta no redis (854ms)
+2027-05-14 14:00:55 INFO cache hit chave=relatorio:8565
+2027-05-14 14:00:58 INFO GET /api/usuarios/2208 200 99ms
+2027-05-14 14:01:01 INFO cache hit chave=relatorio:4965
+2027-05-14 14:01:04 INFO job agendado concluido id=1074
+2027-05-14 14:01:07 INFO POST /api/pedidos 201 119ms
+2027-05-14 14:01:10 INFO job agendado concluido id=4034
+2027-05-14 14:01:12 INFO cache hit chave=relatorio:509
+2027-05-14 14:01:14 INFO POST /api/pedidos 201 95ms
+2027-05-14 14:01:16 INFO cache hit chave=relatorio:2139
+2027-05-14 14:01:18 INFO GET /api/usuarios/6422 200 35ms
+2027-05-14 14:01:21 WARN gc: pausa de 533ms
+2027-05-14 14:01:22 INFO GET /api/usuarios/1668 200 83ms
+2027-05-14 14:01:24 INFO GET /api/usuarios/6738 200 36ms
+2027-05-14 14:01:25 INFO healthcheck ok
+2027-05-14 14:01:26 INFO cache hit chave=relatorio:4643
+2027-05-14 14:01:28 INFO healthcheck ok
+2027-05-14 14:01:31 INFO job agendado concluido id=3284
+2027-05-14 14:01:33 INFO healthcheck ok
+2027-05-14 14:01:35 WARN gc: pausa de 802ms
+2027-05-14 14:01:38 INFO job agendado concluido id=2498
+2027-05-14 14:01:39 INFO cache hit chave=relatorio:4756
+2027-05-14 14:01:40 INFO healthcheck ok
+2027-05-14 14:01:41 INFO healthcheck ok
+2027-05-14 14:01:44 INFO job agendado concluido id=8144
+2027-05-14 14:01:46 INFO healthcheck ok
+2027-05-14 14:01:47 INFO GET /api/usuarios/4604 200 58ms
+2027-05-14 14:01:49 INFO POST /api/pedidos 201 80ms
+2027-05-14 14:01:50 INFO POST /api/pedidos 201 39ms
+2027-05-14 14:01:52 INFO cache hit chave=relatorio:8217
+2027-05-14 14:01:53 INFO POST /api/pedidos 201 114ms
+2027-05-14 14:01:54 INFO GET /api/usuarios/9098 200 91ms
+2027-05-14 14:01:55 INFO job agendado concluido id=1081
+2027-05-14 14:01:58 WARN gc: pausa de 811ms
+2027-05-14 14:02:01 INFO GET /api/usuarios/1569 200 18ms
+2027-05-14 14:02:03 WARN gc: pausa de 446ms
+2027-05-14 14:02:04 INFO GET /api/relatorios 200 104ms
+2027-05-14 14:02:06 INFO healthcheck ok
+2027-05-14 14:02:08 INFO healthcheck ok
+2027-05-14 14:02:11 INFO GET /api/usuarios/3326 200 119ms
+2027-05-14 14:02:14 WARN cache: latência alta no redis (823ms)
+2027-05-14 14:02:15 WARN cache: latência alta no redis (852ms)
+2027-05-14 14:02:18 INFO cache hit chave=relatorio:7593
+2027-05-14 14:02:19 INFO GET /api/relatorios 200 28ms
+2027-05-14 14:02:20 INFO cache hit chave=relatorio:2719
+2027-05-14 14:02:21 INFO POST /api/pedidos 201 70ms
+2027-05-14 14:02:23 INFO POST /api/pedidos 201 73ms
+2027-05-14 14:02:24 INFO POST /api/pedidos 201 98ms
+2027-05-14 14:02:27 INFO cache hit chave=relatorio:9021
+2027-05-14 14:02:29 INFO POST /api/pedidos 201 85ms
+2027-05-14 14:02:31 INFO healthcheck ok
+2027-05-14 14:02:33 INFO healthcheck ok
+2027-05-14 14:02:36 INFO GET /api/relatorios 200 108ms
+2027-05-14 14:02:37 INFO POST /api/pedidos 201 81ms
+2027-05-14 14:02:38 INFO GET /api/relatorios 200 53ms
+2027-05-14 14:02:40 INFO POST /api/pedidos 201 104ms
+2027-05-14 14:02:43 INFO GET /api/relatorios 200 107ms
+2027-05-14 14:02:44 INFO job agendado concluido id=5564
+2027-05-14 14:02:46 INFO GET /api/relatorios 200 70ms
+2027-05-14 14:02:48 INFO healthcheck ok
+2027-05-14 14:02:51 WARN gc: pausa de 379ms
+2027-05-14 14:02:54 WARN gc: pausa de 368ms
+2027-05-14 14:02:56 INFO job agendado concluido id=78
+2027-05-14 14:02:58 INFO healthcheck ok
+2027-05-14 14:02:59 INFO healthcheck ok
+2027-05-14 14:03:01 INFO GET /api/usuarios/6607 200 39ms
+2027-05-14 14:03:03 INFO job agendado concluido id=1028
+2027-05-14 14:03:06 WARN gc: pausa de 639ms
+2027-05-14 14:03:08 INFO POST /api/pedidos 201 96ms
+2027-05-14 14:03:10 INFO cache hit chave=relatorio:4126
+2027-05-14 14:03:13 WARN cache: latência alta no redis (670ms)
+2027-05-14 14:03:14 INFO job agendado concluido id=4512
+2027-05-14 14:03:17 INFO job agendado concluido id=5793
+2027-05-14 14:03:20 INFO cache hit chave=relatorio:2888
+2027-05-14 14:03:22 INFO job agendado concluido id=5113
+2027-05-14 14:03:23 INFO cache hit chave=relatorio:474
+2027-05-14 14:03:26 INFO job agendado concluido id=8041
+2027-05-14 14:03:27 INFO cache hit chave=relatorio:640
+2027-05-14 14:03:29 INFO healthcheck ok
+2027-05-14 14:03:31 INFO GET /api/relatorios 200 66ms
+2027-05-14 14:03:34 INFO GET /api/usuarios/7609 200 44ms
+2027-05-14 14:03:36 INFO healthcheck ok
+2027-05-14 14:03:38 WARN gc: pausa de 712ms
+2027-05-14 14:03:39 INFO healthcheck ok
+2027-05-14 14:03:40 INFO cache hit chave=relatorio:3168
+2027-05-14 14:03:42 INFO GET /api/relatorios 200 111ms
+2027-05-14 14:03:45 INFO GET /api/relatorios 200 83ms
+2027-05-14 14:03:46 INFO cache hit chave=relatorio:588
+2027-05-14 14:03:49 INFO healthcheck ok
+2027-05-14 14:03:51 INFO job agendado concluido id=9205
+2027-05-14 14:03:52 INFO job agendado concluido id=4480
+2027-05-14 14:03:53 INFO GET /api/relatorios 200 25ms
+2027-05-14 14:03:56 INFO POST /api/pedidos 201 66ms
+2027-05-14 14:03:58 WARN api: requisição lenta GET /api/relatorios (317ms)
+2027-05-14 14:04:00 INFO cache hit chave=relatorio:7805
+2027-05-14 14:04:01 INFO healthcheck ok
+2027-05-14 14:04:02 INFO GET /api/usuarios/7720 200 103ms
+2027-05-14 14:04:04 WARN api: requisição lenta GET /api/relatorios (828ms)
+2027-05-14 14:04:07 INFO cache hit chave=relatorio:1824
+2027-05-14 14:04:10 INFO POST /api/pedidos 201 10ms
+2027-05-14 14:04:12 INFO GET /api/relatorios 200 99ms
+2027-05-14 14:04:14 INFO cache hit chave=relatorio:1163
+2027-05-14 14:04:15 INFO job agendado concluido id=1342
+2027-05-14 14:04:17 INFO GET /api/usuarios/7942 200 20ms
+2027-05-14 14:04:19 INFO cache hit chave=relatorio:5894
+2027-05-14 14:04:22 WARN cache: latência alta no redis (544ms)
+2027-05-14 14:04:23 INFO POST /api/pedidos 201 60ms
+2027-05-14 14:04:26 INFO cache hit chave=relatorio:1092
+2027-05-14 14:04:29 INFO GET /api/usuarios/9951 200 79ms
+2027-05-14 14:04:31 INFO GET /api/relatorios 200 72ms
+2027-05-14 14:04:34 INFO healthcheck ok
+2027-05-14 14:04:35 INFO job agendado concluido id=2141
+2027-05-14 14:04:38 INFO job agendado concluido id=2815
+2027-05-14 14:04:39 INFO job agendado concluido id=3328
+2027-05-14 14:04:40 WARN cache: latência alta no redis (646ms)
+2027-05-14 14:04:43 INFO POST /api/pedidos 201 52ms
+2027-05-14 14:04:45 INFO healthcheck ok
+2027-05-14 14:04:47 INFO job agendado concluido id=3740
+2027-05-14 14:04:50 INFO GET /api/relatorios 200 119ms
+2027-05-14 14:04:51 INFO cache hit chave=relatorio:3497
+2027-05-14 14:04:52 INFO POST /api/pedidos 201 55ms
+2027-05-14 14:04:54 INFO job agendado concluido id=6171
+2027-05-14 14:04:56 INFO healthcheck ok
+2027-05-14 14:04:57 INFO GET /api/relatorios 200 119ms
+2027-05-14 14:04:59 INFO job agendado concluido id=4589
+2027-05-14 14:05:01 INFO healthcheck ok
+2027-05-14 14:05:03 INFO GET /api/usuarios/3630 200 22ms
+2027-05-14 14:05:04 INFO job agendado concluido id=9676
+2027-05-14 14:05:06 INFO GET /api/relatorios 200 67ms
+2027-05-14 14:05:08 INFO job agendado concluido id=8412
+2027-05-14 14:05:09 WARN gc: pausa de 494ms
+2027-05-14 14:05:10 INFO healthcheck ok
+2027-05-14 14:05:12 INFO cache hit chave=relatorio:1356
+2027-05-14 14:05:13 INFO job agendado concluido id=9782
+2027-05-14 14:05:14 INFO GET /api/usuarios/407 200 27ms
+2027-05-14 14:05:16 INFO POST /api/pedidos 201 69ms
+2027-05-14 14:05:17 INFO job agendado concluido id=5922
+2027-05-14 14:05:19 INFO cache hit chave=relatorio:2330
+2027-05-14 14:05:21 INFO POST /api/pedidos 201 68ms
+2027-05-14 14:05:22 INFO cache hit chave=relatorio:1416
+2027-05-14 14:05:23 INFO cache hit chave=relatorio:4316
+2027-05-14 14:05:25 INFO GET /api/relatorios 200 57ms
+2027-05-14 14:05:27 INFO job agendado concluido id=4931
+2027-05-14 14:05:28 INFO GET /api/usuarios/9364 200 36ms
+2027-05-14 14:05:31 INFO POST /api/pedidos 201 106ms
+2027-05-14 14:05:32 INFO GET /api/relatorios 200 34ms
+2027-05-14 14:05:35 INFO POST /api/pedidos 201 52ms
+2027-05-14 14:05:36 INFO GET /api/usuarios/9337 200 112ms
+2027-05-14 14:05:38 INFO GET /api/usuarios/9747 200 110ms
+2027-05-14 14:05:39 INFO job agendado concluido id=2151
+2027-05-14 14:05:42 INFO cache hit chave=relatorio:9260
+2027-05-14 14:05:44 INFO job agendado concluido id=3211
+2027-05-14 14:05:46 INFO job agendado concluido id=5899
+2027-05-14 14:05:47 INFO GET /api/relatorios 200 70ms
+2027-05-14 14:05:49 INFO GET /api/usuarios/8719 200 14ms
+2027-05-14 14:05:52 INFO POST /api/pedidos 201 79ms
+2027-05-14 14:05:55 INFO GET /api/usuarios/6120 200 44ms
+2027-05-14 14:05:57 WARN gc: pausa de 504ms
+2027-05-14 14:06:00 INFO GET /api/relatorios 200 42ms
+2027-05-14 14:06:01 INFO GET /api/usuarios/9126 200 80ms
+2027-05-14 14:06:02 INFO job agendado concluido id=3907
+2027-05-14 14:06:03 INFO job agendado concluido id=4672
+2027-05-14 14:06:04 INFO POST /api/pedidos 201 105ms
+2027-05-14 14:06:06 INFO job agendado concluido id=8962
+2027-05-14 14:06:09 INFO cache hit chave=relatorio:1630
+2027-05-14 14:06:11 INFO GET /api/usuarios/5851 200 64ms
+2027-05-14 14:06:12 INFO healthcheck ok
+2027-05-14 14:06:14 INFO GET /api/relatorios 200 68ms
+2027-05-14 14:06:17 INFO cache hit chave=relatorio:9731
+2027-05-14 14:06:19 INFO job agendado concluido id=7355
+2027-05-14 14:06:22 INFO GET /api/usuarios/7760 200 23ms
+2027-05-14 14:06:23 INFO POST /api/pedidos 201 30ms
+2027-05-14 14:06:25 INFO GET /api/usuarios/7134 200 67ms
+2027-05-14 14:06:28 INFO GET /api/usuarios/9080 200 13ms
+2027-05-14 14:06:29 INFO healthcheck ok
+2027-05-14 14:06:30 INFO GET /api/relatorios 200 60ms
+2027-05-14 14:06:32 INFO GET /api/relatorios 200 49ms
+2027-05-14 14:06:33 INFO cache hit chave=relatorio:8501
+2027-05-14 14:06:34 INFO GET /api/usuarios/8748 200 105ms
+2027-05-14 14:06:35 INFO healthcheck ok
+2027-05-14 14:06:38 INFO POST /api/pedidos 201 96ms
+2027-05-14 14:06:41 WARN gc: pausa de 643ms
+2027-05-14 14:06:44 INFO GET /api/usuarios/2415 200 85ms
+2027-05-14 14:06:45 WARN gc: pausa de 667ms
+2027-05-14 14:06:48 INFO GET /api/relatorios 200 89ms
+2027-05-14 14:06:49 INFO healthcheck ok
+2027-05-14 14:06:51 INFO healthcheck ok
+2027-05-14 14:06:53 INFO job agendado concluido id=4212
+2027-05-14 14:06:55 INFO GET /api/usuarios/2706 200 17ms
+2027-05-14 14:06:57 INFO cache hit chave=relatorio:2065
+2027-05-14 14:06:58 WARN gc: pausa de 347ms
+2027-05-14 14:06:59 INFO GET /api/usuarios/8408 200 111ms
+2027-05-14 14:07:00 INFO GET /api/relatorios 200 64ms
+2027-05-14 14:07:01 INFO healthcheck ok
+2027-05-14 14:07:02 INFO job agendado concluido id=5249
+2027-05-14 14:07:05 INFO healthcheck ok
+2027-05-14 14:07:08 INFO POST /api/pedidos 201 91ms
+2027-05-14 14:07:10 INFO GET /api/relatorios 200 68ms
+2027-05-14 14:07:13 INFO POST /api/pedidos 201 70ms
+2027-05-14 14:07:16 INFO GET /api/relatorios 200 11ms
+2027-05-14 14:07:19 INFO cache hit chave=relatorio:8088
+2027-05-14 14:07:22 INFO cache hit chave=relatorio:5081
+2027-05-14 14:07:23 INFO cache hit chave=relatorio:5255
+2027-05-14 14:07:25 INFO GET /api/relatorios 200 35ms
+2027-05-14 14:07:28 INFO GET /api/usuarios/1417 200 106ms
+2027-05-14 14:07:31 INFO healthcheck ok
+2027-05-14 14:07:34 INFO GET /api/relatorios 200 84ms
+2027-05-14 14:07:35 INFO healthcheck ok
+2027-05-14 14:07:37 INFO cache hit chave=relatorio:6679
+2027-05-14 14:07:39 INFO cache hit chave=relatorio:7941
+2027-05-14 14:07:42 INFO cache hit chave=relatorio:5192
+2027-05-14 14:07:45 INFO cache hit chave=relatorio:6974
+2027-05-14 14:07:46 INFO POST /api/pedidos 201 109ms
+2027-05-14 14:07:48 INFO cache hit chave=relatorio:8940
+2027-05-14 14:07:49 INFO job agendado concluido id=7435
+2027-05-14 14:07:50 INFO job agendado concluido id=4714
+2027-05-14 14:07:51 INFO healthcheck ok
+2027-05-14 14:07:53 INFO GET /api/relatorios 200 109ms
+2027-05-14 14:07:54 INFO cache hit chave=relatorio:6843
+2027-05-14 14:07:55 INFO POST /api/pedidos 201 69ms
+2027-05-14 14:07:58 INFO POST /api/pedidos 201 27ms
+2027-05-14 14:07:59 INFO POST /api/pedidos 201 100ms
+2027-05-14 14:08:01 INFO GET /api/usuarios/5825 200 43ms
+2027-05-14 14:08:03 INFO job agendado concluido id=7612
+2027-05-14 14:08:06 INFO cache hit chave=relatorio:7045
+2027-05-14 14:08:07 INFO healthcheck ok
+2027-05-14 14:08:10 INFO POST /api/pedidos 201 54ms
+2027-05-14 14:08:12 INFO healthcheck ok
+2027-05-14 14:08:15 INFO cache hit chave=relatorio:7954
+2027-05-14 14:08:17 INFO job agendado concluido id=7635
+2027-05-14 14:08:18 INFO healthcheck ok
+2027-05-14 14:08:20 INFO cache hit chave=relatorio:4016
+2027-05-14 14:08:21 INFO POST /api/pedidos 201 118ms
+2027-05-14 14:08:22 INFO GET /api/relatorios 200 18ms
+2027-05-14 14:08:23 INFO cache hit chave=relatorio:4087
+2027-05-14 14:08:26 INFO healthcheck ok
+2027-05-14 14:08:27 INFO GET /api/usuarios/4422 200 49ms
+2027-05-14 14:08:28 INFO cache hit chave=relatorio:9453
+2027-05-14 14:08:31 INFO POST /api/pedidos 201 87ms
+2027-05-14 14:08:32 INFO GET /api/relatorios 200 113ms
+2027-05-14 14:08:33 WARN api: requisição lenta GET /api/relatorios (824ms)
+2027-05-14 14:08:34 INFO job agendado concluido id=5987
+2027-05-14 14:08:37 INFO GET /api/relatorios 200 11ms
+2027-05-14 14:08:40 INFO healthcheck ok
+2027-05-14 14:08:41 INFO GET /api/usuarios/1688 200 66ms
+2027-05-14 14:08:43 INFO job agendado concluido id=1344
+2027-05-14 14:08:46 INFO GET /api/usuarios/4733 200 114ms
+2027-05-14 14:08:47 INFO POST /api/pedidos 201 95ms
+2027-05-14 14:08:49 INFO POST /api/pedidos 201 9ms
+2027-05-14 14:08:51 INFO GET /api/relatorios 200 16ms
+2027-05-14 14:08:52 INFO healthcheck ok
+2027-05-14 14:08:54 INFO GET /api/usuarios/5633 200 37ms
+2027-05-14 14:08:56 INFO cache hit chave=relatorio:4934
+2027-05-14 14:08:57 INFO POST /api/pedidos 201 42ms
+2027-05-14 14:08:58 INFO GET /api/usuarios/8440 200 22ms
+2027-05-14 14:09:01 INFO GET /api/usuarios/9803 200 113ms
+2027-05-14 14:09:02 INFO cache hit chave=relatorio:439
+2027-05-14 14:09:04 INFO job agendado concluido id=3321
+2027-05-14 14:09:06 INFO GET /api/relatorios 200 106ms
+2027-05-14 14:09:08 INFO POST /api/pedidos 201 34ms
+2027-05-14 14:09:11 INFO job agendado concluido id=3378
+2027-05-14 14:09:13 INFO cache hit chave=relatorio:4585
+2027-05-14 14:09:16 WARN api: requisição lenta GET /api/relatorios (680ms)
+2027-05-14 14:09:18 INFO GET /api/relatorios 200 28ms
+2027-05-14 14:09:19 INFO GET /api/relatorios 200 85ms
+2027-05-14 14:09:21 INFO GET /api/relatorios 200 70ms
+2027-05-14 14:09:23 INFO healthcheck ok
+2027-05-14 14:09:26 INFO GET /api/relatorios 200 80ms
+2027-05-14 14:09:27 INFO GET /api/usuarios/5278 200 50ms
+2027-05-14 14:09:30 INFO healthcheck ok
+2027-05-14 14:09:33 WARN api: requisição lenta GET /api/relatorios (576ms)
+2027-05-14 14:09:35 INFO cache hit chave=relatorio:2909
+2027-05-14 14:09:36 INFO POST /api/pedidos 201 45ms
+2027-05-14 14:09:37 INFO GET /api/relatorios 200 117ms
+2027-05-14 14:09:40 INFO healthcheck ok
+2027-05-14 14:09:41 INFO job agendado concluido id=7154
+2027-05-14 14:09:43 INFO GET /api/usuarios/9116 200 77ms
+2027-05-14 14:09:44 INFO cache hit chave=relatorio:8031
+2027-05-14 14:09:45 INFO job agendado concluido id=993
+2027-05-14 14:09:47 WARN gc: pausa de 585ms
+2027-05-14 14:09:50 INFO POST /api/pedidos 201 112ms
+2027-05-14 14:09:53 INFO healthcheck ok
+2027-05-14 14:09:54 INFO job agendado concluido id=2759
+2027-05-14 14:09:55 INFO GET /api/usuarios/4628 200 72ms
+2027-05-14 14:09:56 INFO GET /api/relatorios 200 97ms
+2027-05-14 14:09:58 INFO healthcheck ok
+2027-05-14 14:09:59 INFO GET /api/relatorios 200 102ms
+2027-05-14 14:10:02 INFO GET /api/usuarios/9534 200 102ms
+2027-05-14 14:10:05 INFO GET /api/usuarios/476 200 17ms
+2027-05-14 14:10:08 INFO GET /api/usuarios/3187 200 118ms
+2027-05-14 14:10:09 INFO cache hit chave=relatorio:1013
+2027-05-14 14:10:12 INFO cache hit chave=relatorio:7168
+2027-05-14 14:10:15 INFO GET /api/relatorios 200 26ms
+2027-05-14 14:10:17 INFO GET /api/relatorios 200 108ms
+2027-05-14 14:10:18 INFO GET /api/relatorios 200 48ms
+2027-05-14 14:10:21 INFO GET /api/usuarios/3992 200 105ms
+2027-05-14 14:10:22 INFO GET /api/relatorios 200 107ms
+2027-05-14 14:10:24 INFO GET /api/relatorios 200 90ms
+2027-05-14 14:10:25 INFO POST /api/pedidos 201 44ms
+2027-05-14 14:10:28 INFO POST /api/pedidos 201 47ms
+2027-05-14 14:10:29 INFO POST /api/pedidos 201 82ms
+2027-05-14 14:10:30 INFO GET /api/usuarios/4262 200 98ms
+2027-05-14 14:10:32 INFO job agendado concluido id=7020
+2027-05-14 14:10:35 INFO job agendado concluido id=316
+2027-05-14 14:10:36 INFO cache hit chave=relatorio:3099
+2027-05-14 14:10:37 INFO job agendado concluido id=2882
+2027-05-14 14:10:39 WARN cache: latência alta no redis (660ms)
+2027-05-14 14:10:42 INFO GET /api/relatorios 200 20ms
+2027-05-14 14:10:43 INFO job agendado concluido id=3766
+2027-05-14 14:10:45 INFO cache hit chave=relatorio:4015
+2027-05-14 14:10:47 INFO POST /api/pedidos 201 98ms
+2027-05-14 14:10:50 INFO GET /api/usuarios/4716 200 93ms
+2027-05-14 14:10:51 INFO healthcheck ok
+2027-05-14 14:10:53 INFO GET /api/relatorios 200 72ms
+2027-05-14 14:10:55 INFO healthcheck ok
+2027-05-14 14:10:57 INFO healthcheck ok
+2027-05-14 14:10:59 INFO cache hit chave=relatorio:7500
+2027-05-14 14:11:02 INFO POST /api/pedidos 201 98ms
+2027-05-14 14:11:05 INFO cache hit chave=relatorio:4957
+2027-05-14 14:11:07 INFO GET /api/usuarios/8687 200 101ms
+2027-05-14 14:11:10 WARN api: requisição lenta GET /api/relatorios (579ms)
+2027-05-14 14:11:13 INFO GET /api/usuarios/1391 200 74ms
+2027-05-14 14:11:15 INFO GET /api/usuarios/8053 200 8ms
+2027-05-14 14:11:17 INFO healthcheck ok
+2027-05-14 14:11:20 INFO cache hit chave=relatorio:4869
+2027-05-14 14:11:22 WARN gc: pausa de 627ms
+2027-05-14 14:11:23 INFO POST /api/pedidos 201 83ms
+2027-05-14 14:11:24 INFO GET /api/usuarios/4969 200 14ms
+2027-05-14 14:11:25 INFO POST /api/pedidos 201 14ms
+2027-05-14 14:11:28 INFO GET /api/usuarios/6202 200 91ms
+2027-05-14 14:11:29 WARN api: requisição lenta GET /api/relatorios (366ms)
+2027-05-14 14:11:31 INFO POST /api/pedidos 201 42ms
+2027-05-14 14:11:32 INFO POST /api/pedidos 201 22ms
+2027-05-14 14:11:33 INFO GET /api/relatorios 200 119ms
+2027-05-14 14:11:36 WARN api: requisição lenta GET /api/relatorios (712ms)
+2027-05-14 14:11:38 INFO POST /api/pedidos 201 10ms
+2027-05-14 14:11:40 INFO cache hit chave=relatorio:1434
+2027-05-14 14:11:41 WARN api: requisição lenta GET /api/relatorios (570ms)
+2027-05-14 14:11:43 INFO POST /api/pedidos 201 70ms
+2027-05-14 14:11:46 INFO GET /api/usuarios/164 200 69ms
+2027-05-14 14:11:47 INFO healthcheck ok
+2027-05-14 14:11:48 INFO GET /api/relatorios 200 110ms
+2027-05-14 14:11:50 INFO GET /api/usuarios/1616 200 47ms
+2027-05-14 14:11:51 INFO GET /api/relatorios 200 56ms
+2027-05-14 14:11:52 INFO POST /api/pedidos 201 95ms
+2027-05-14 14:11:53 INFO healthcheck ok
+2027-05-14 14:11:54 INFO job agendado concluido id=7594
+2027-05-14 14:11:57 INFO job agendado concluido id=3181
+2027-05-14 14:12:00 INFO POST /api/pedidos 201 52ms
+2027-05-14 14:12:01 INFO job agendado concluido id=845
+2027-05-14 14:12:03 INFO job agendado concluido id=9568
+2027-05-14 14:12:04 INFO GET /api/relatorios 200 120ms
+2027-05-14 14:12:05 WARN gc: pausa de 728ms
+2027-05-14 14:12:07 INFO healthcheck ok
+2027-05-14 14:12:08 INFO cache hit chave=relatorio:1252
+2027-05-14 14:12:09 INFO GET /api/usuarios/1460 200 46ms
+2027-05-14 14:12:12 INFO cache hit chave=relatorio:8557
+2027-05-14 14:12:14 INFO GET /api/usuarios/1067 200 63ms
+2027-05-14 14:12:15 INFO GET /api/usuarios/3863 200 104ms
+2027-05-14 14:12:18 INFO GET /api/relatorios 200 117ms
+2027-05-14 14:12:21 WARN api: requisição lenta GET /api/relatorios (332ms)
+2027-05-14 14:12:22 INFO job agendado concluido id=1396
+2027-05-14 14:12:23 INFO GET /api/relatorios 200 97ms
+2027-05-14 14:12:26 INFO POST /api/pedidos 201 50ms
+2027-05-14 14:12:29 INFO job agendado concluido id=6400
+2027-05-14 14:12:30 INFO GET /api/relatorios 200 75ms
+2027-05-14 14:12:33 INFO GET /api/relatorios 200 41ms
+2027-05-14 14:12:36 INFO job agendado concluido id=9057
+2027-05-14 14:12:39 INFO GET /api/usuarios/8206 200 66ms
+2027-05-14 14:12:40 INFO job agendado concluido id=6214
+2027-05-14 14:12:42 INFO GET /api/relatorios 200 115ms
+2027-05-14 14:12:45 INFO GET /api/relatorios 200 65ms
+2027-05-14 14:12:47 INFO GET /api/usuarios/8329 200 79ms
+2027-05-14 14:12:48 INFO healthcheck ok
+2027-05-14 14:12:49 INFO POST /api/pedidos 201 64ms
+2027-05-14 14:12:50 WARN api: requisição lenta GET /api/relatorios (827ms)
+2027-05-14 14:12:52 INFO healthcheck ok
+2027-05-14 14:12:55 INFO job agendado concluido id=7505
+2027-05-14 14:12:58 INFO GET /api/relatorios 200 85ms
+2027-05-14 14:13:00 INFO cache hit chave=relatorio:5893
+2027-05-14 14:13:02 INFO GET /api/usuarios/4337 200 112ms
+2027-05-14 14:13:04 INFO POST /api/pedidos 201 120ms
+2027-05-14 14:13:05 INFO GET /api/relatorios 200 82ms
+2027-05-14 14:13:07 INFO GET /api/usuarios/7271 200 25ms
+2027-05-14 14:13:10 INFO POST /api/pedidos 201 16ms
+2027-05-14 14:13:11 INFO GET /api/relatorios 200 74ms
+2027-05-14 14:13:12 INFO cache hit chave=relatorio:4896
+2027-05-14 14:13:13 INFO POST /api/pedidos 201 80ms
+2027-05-14 14:13:14 INFO healthcheck ok
+2027-05-14 14:13:17 INFO GET /api/usuarios/3121 200 113ms
+2027-05-14 14:13:19 WARN gc: pausa de 597ms
+2027-05-14 14:13:22 INFO GET /api/usuarios/798 200 56ms
+2027-05-14 14:13:25 INFO cache hit chave=relatorio:5870
+2027-05-14 14:13:26 INFO POST /api/pedidos 201 90ms
+2027-05-14 14:13:29 INFO healthcheck ok
+2027-05-14 14:13:32 INFO POST /api/pedidos 201 70ms
+2027-05-14 14:13:33 INFO GET /api/relatorios 200 26ms
+2027-05-14 14:13:35 INFO GET /api/usuarios/7710 200 18ms
+2027-05-14 14:13:36 INFO GET /api/relatorios 200 36ms
+2027-05-14 14:13:38 INFO cache hit chave=relatorio:8464
+2027-05-14 14:13:40 INFO POST /api/pedidos 201 15ms
+2027-05-14 14:13:41 INFO cache hit chave=relatorio:5556
+2027-05-14 14:13:44 INFO GET /api/usuarios/5138 200 32ms
+2027-05-14 14:13:45 INFO cache hit chave=relatorio:9564
+2027-05-14 14:13:46 INFO healthcheck ok
+2027-05-14 14:13:49 INFO healthcheck ok
+2027-05-14 14:13:50 INFO cache hit chave=relatorio:1734
+2027-05-14 14:13:53 INFO GET /api/usuarios/6013 200 116ms
+2027-05-14 14:13:55 INFO GET /api/usuarios/9018 200 39ms
+2027-05-14 14:13:57 INFO POST /api/pedidos 201 119ms
+2027-05-14 14:14:00 INFO GET /api/relatorios 200 85ms
+2027-05-14 14:14:02 INFO GET /api/relatorios 200 82ms
+2027-05-14 14:14:04 INFO cache hit chave=relatorio:3330
+2027-05-14 14:14:06 INFO GET /api/relatorios 200 91ms
+2027-05-14 14:14:08 INFO POST /api/pedidos 201 58ms
+2027-05-14 14:14:10 INFO GET /api/usuarios/7981 200 92ms
+2027-05-14 14:14:12 INFO GET /api/relatorios 200 71ms
+2027-05-14 14:14:15 INFO cache hit chave=relatorio:632
+2027-05-14 14:14:17 INFO GET /api/usuarios/3404 200 100ms
+2027-05-14 14:14:18 INFO job agendado concluido id=670
+2027-05-14 14:14:19 INFO GET /api/relatorios 200 19ms
+2027-05-14 14:14:22 INFO GET /api/relatorios 200 36ms
+2027-05-14 14:14:23 INFO GET /api/usuarios/9023 200 36ms
+2027-05-14 14:14:25 INFO job agendado concluido id=2168
+2027-05-14 14:14:26 WARN gc: pausa de 460ms
+2027-05-14 14:14:29 INFO healthcheck ok
+2027-05-14 14:14:31 INFO GET /api/usuarios/2642 200 37ms
+2027-05-14 14:14:33 INFO GET /api/relatorios 200 108ms
+2027-05-14 14:14:34 INFO GET /api/usuarios/7146 200 118ms
+2027-05-14 14:14:37 INFO cache hit chave=relatorio:2941
+2027-05-14 14:14:39 INFO GET /api/relatorios 200 42ms
+2027-05-14 14:14:42 INFO job agendado concluido id=5927
+2027-05-14 14:14:44 INFO job agendado concluido id=1493
+2027-05-14 14:14:46 INFO job agendado concluido id=3388
+2027-05-14 14:14:47 INFO GET /api/usuarios/5943 200 34ms
+2027-05-14 14:14:49 INFO job agendado concluido id=6213
+2027-05-14 14:14:50 INFO GET /api/relatorios 200 95ms
+2027-05-14 14:14:52 INFO POST /api/pedidos 201 119ms
+2027-05-14 14:14:55 INFO POST /api/pedidos 201 41ms
+2027-05-14 14:14:57 INFO GET /api/relatorios 200 59ms
+2027-05-14 14:14:58 INFO POST /api/pedidos 201 22ms
+2027-05-14 14:14:59 INFO healthcheck ok
+2027-05-14 14:15:02 WARN api: requisição lenta GET /api/relatorios (735ms)
+2027-05-14 14:15:04 INFO job agendado concluido id=1865
+2027-05-14 14:15:05 INFO GET /api/relatorios 200 117ms
+2027-05-14 14:15:06 INFO POST /api/pedidos 201 10ms
+2027-05-14 14:15:09 INFO GET /api/usuarios/8883 200 26ms
+2027-05-14 14:15:10 INFO GET /api/relatorios 200 69ms
+2027-05-14 14:15:12 INFO POST /api/pedidos 201 57ms
+2027-05-14 14:15:14 INFO healthcheck ok
+2027-05-14 14:15:17 INFO GET /api/usuarios/1444 200 31ms
+2027-05-14 14:15:20 INFO GET /api/relatorios 200 98ms
+2027-05-14 14:15:22 INFO GET /api/usuarios/7506 200 10ms
+2027-05-14 14:15:24 INFO job agendado concluido id=226
+2027-05-14 14:15:26 WARN gc: pausa de 584ms
+2027-05-14 14:15:28 INFO GET /api/usuarios/942 200 110ms
+2027-05-14 14:15:30 INFO GET /api/usuarios/6141 200 39ms
+2027-05-14 14:15:33 INFO cache hit chave=relatorio:2130
+2027-05-14 14:15:36 INFO healthcheck ok
+2027-05-14 14:15:37 INFO POST /api/pedidos 201 11ms
+2027-05-14 14:15:40 INFO healthcheck ok
+2027-05-14 14:15:41 INFO job agendado concluido id=5851
+2027-05-14 14:15:42 INFO healthcheck ok
+2027-05-14 14:15:43 INFO healthcheck ok
+2027-05-14 14:15:45 INFO GET /api/relatorios 200 79ms
+2027-05-14 14:15:46 INFO GET /api/relatorios 200 104ms
+2027-05-14 14:15:49 INFO healthcheck ok
+2027-05-14 14:15:50 INFO healthcheck ok
+2027-05-14 14:15:53 INFO cache hit chave=relatorio:7388
+2027-05-14 14:15:54 INFO GET /api/relatorios 200 65ms
+2027-05-14 14:15:55 WARN api: requisição lenta GET /api/relatorios (841ms)
+2027-05-14 14:15:56 INFO job agendado concluido id=5487
+2027-05-14 14:15:58 INFO POST /api/pedidos 201 93ms
+2027-05-14 14:16:01 INFO GET /api/relatorios 200 116ms
+2027-05-14 14:16:04 INFO healthcheck ok
+2027-05-14 14:16:05 INFO cache hit chave=relatorio:5583
+2027-05-14 14:16:08 INFO GET /api/usuarios/1850 200 14ms
+2027-05-14 14:16:10 INFO POST /api/pedidos 201 29ms
+2027-05-14 14:16:12 INFO POST /api/pedidos 201 30ms
+2027-05-14 14:16:13 INFO job agendado concluido id=9462
+2027-05-14 14:16:16 INFO healthcheck ok
+2027-05-14 14:16:19 INFO GET /api/relatorios 200 55ms
+2027-05-14 14:16:20 INFO job agendado concluido id=596
+2027-05-14 14:16:23 INFO GET /api/usuarios/6143 200 70ms
+2027-05-14 14:16:24 INFO cache hit chave=relatorio:6185
+2027-05-14 14:16:26 INFO job agendado concluido id=2655
+2027-05-14 14:16:27 INFO GET /api/relatorios 200 102ms
+2027-05-14 14:16:30 WARN cache: latência alta no redis (761ms)
+2027-05-14 14:16:31 INFO GET /api/relatorios 200 45ms
+2027-05-14 14:16:34 WARN gc: pausa de 860ms
+2027-05-14 14:16:36 INFO cache hit chave=relatorio:4990
+2027-05-14 14:16:37 INFO GET /api/relatorios 200 29ms
+2027-05-14 14:16:40 INFO job agendado concluido id=414
+2027-05-14 14:16:43 INFO cache hit chave=relatorio:7519
+2027-05-14 14:16:45 INFO job agendado concluido id=3961
+2027-05-14 14:16:48 INFO POST /api/pedidos 201 27ms
+2027-05-14 14:16:51 WARN gc: pausa de 653ms
+2027-05-14 14:16:52 INFO cache hit chave=relatorio:5042
+2027-05-14 14:16:55 INFO GET /api/usuarios/1930 200 45ms
+2027-05-14 14:16:58 INFO cache hit chave=relatorio:7285
+2027-05-14 14:16:59 INFO job agendado concluido id=5344
+2027-05-14 14:17:00 INFO cache hit chave=relatorio:2715
+2027-05-14 14:17:02 INFO GET /api/relatorios 200 56ms
+2027-05-14 14:17:04 WARN api: requisição lenta GET /api/relatorios (438ms)
+2027-05-14 14:17:06 WARN gc: pausa de 705ms
+2027-05-14 14:17:07 INFO job agendado concluido id=3882
+2027-05-14 14:17:09 INFO POST /api/pedidos 201 112ms
+2027-05-14 14:17:10 INFO healthcheck ok
+2027-05-14 14:17:11 INFO job agendado concluido id=447
+2027-05-14 14:17:13 INFO cache hit chave=relatorio:6454
+2027-05-14 14:17:14 WARN gc: pausa de 326ms
+2027-05-14 14:17:16 INFO job agendado concluido id=2875
+2027-05-14 14:17:18 INFO healthcheck ok
+2027-05-14 14:17:21 INFO healthcheck ok
+2027-05-14 14:17:23 INFO healthcheck ok
+2027-05-14 14:17:25 INFO job agendado concluido id=3393
+2027-05-14 14:17:26 INFO GET /api/usuarios/1721 200 96ms
+2027-05-14 14:17:28 INFO job agendado concluido id=8659
+2027-05-14 14:17:30 INFO POST /api/pedidos 201 31ms
+2027-05-14 14:17:33 WARN api: requisição lenta GET /api/relatorios (899ms)
+2027-05-14 14:17:36 INFO healthcheck ok
+2027-05-14 14:17:37 INFO job agendado concluido id=9101
+2027-05-14 14:17:39 INFO GET /api/usuarios/3269 200 115ms
+2027-05-14 14:17:42 INFO healthcheck ok
+2027-05-14 14:17:43 INFO GET /api/usuarios/3117 200 34ms
+2027-05-14 14:17:44 INFO healthcheck ok
+2027-05-14 14:17:46 INFO cache hit chave=relatorio:6771
+2027-05-14 14:17:49 INFO job agendado concluido id=5229
+2027-05-14 14:17:52 INFO job agendado concluido id=3115
+2027-05-14 14:17:53 INFO job agendado concluido id=5970
+2027-05-14 14:17:56 INFO POST /api/pedidos 201 33ms
+2027-05-14 14:17:57 INFO GET /api/usuarios/8764 200 85ms
+2027-05-14 14:17:58 INFO GET /api/relatorios 200 30ms
+2027-05-14 14:17:59 INFO healthcheck ok
+2027-05-14 14:18:00 INFO GET /api/relatorios 200 36ms
+2027-05-14 14:18:01 INFO POST /api/pedidos 201 44ms
+2027-05-14 14:18:04 INFO GET /api/usuarios/1816 200 67ms
+2027-05-14 14:18:07 INFO GET /api/usuarios/1492 200 112ms
+2027-05-14 14:18:09 INFO GET /api/usuarios/8915 200 87ms
+2027-05-14 14:18:10 INFO job agendado concluido id=6637
+2027-05-14 14:18:11 WARN gc: pausa de 602ms
+2027-05-14 14:18:12 INFO cache hit chave=relatorio:8986
+2027-05-14 14:18:14 INFO GET /api/relatorios 200 113ms
+2027-05-14 14:18:16 INFO POST /api/pedidos 201 104ms
+2027-05-14 14:18:18 INFO GET /api/usuarios/9013 200 80ms
+2027-05-14 14:18:19 INFO cache hit chave=relatorio:3406
+2027-05-14 14:18:22 INFO GET /api/usuarios/8408 200 47ms
+2027-05-14 14:18:24 INFO GET /api/relatorios 200 94ms
+2027-05-14 14:18:25 INFO job agendado concluido id=5322
+2027-05-14 14:18:28 INFO GET /api/usuarios/9722 200 33ms
+2027-05-14 14:18:30 INFO cache hit chave=relatorio:6610
+2027-05-14 14:18:31 INFO GET /api/relatorios 200 15ms
+2027-05-14 14:18:33 INFO job agendado concluido id=8919
+2027-05-14 14:18:34 WARN gc: pausa de 707ms
+2027-05-14 14:18:37 INFO healthcheck ok
+2027-05-14 14:18:38 INFO healthcheck ok
+2027-05-14 14:18:41 INFO GET /api/relatorios 200 42ms
+2027-05-14 14:18:42 INFO GET /api/relatorios 200 96ms
+2027-05-14 14:18:44 INFO job agendado concluido id=7017
+2027-05-14 14:18:47 INFO job agendado concluido id=8905
+2027-05-14 14:18:50 INFO cache hit chave=relatorio:6568
+2027-05-14 14:18:52 INFO cache hit chave=relatorio:3438
+2027-05-14 14:18:55 INFO healthcheck ok
+2027-05-14 14:18:57 INFO healthcheck ok
+2027-05-14 14:18:59 INFO GET /api/usuarios/4511 200 117ms
+2027-05-14 14:19:01 INFO GET /api/relatorios 200 90ms
+2027-05-14 14:19:03 INFO healthcheck ok
+2027-05-14 14:19:05 INFO POST /api/pedidos 201 81ms
+2027-05-14 14:19:07 WARN gc: pausa de 697ms
+2027-05-14 14:19:10 INFO healthcheck ok
+2027-05-14 14:19:12 INFO job agendado concluido id=6094
+2027-05-14 14:19:13 INFO cache hit chave=relatorio:6278
+2027-05-14 14:19:16 INFO healthcheck ok
+2027-05-14 14:19:19 INFO healthcheck ok
+2027-05-14 14:19:22 INFO job agendado concluido id=834
+2027-05-14 14:19:25 INFO GET /api/relatorios 200 82ms
+2027-05-14 14:19:26 INFO POST /api/pedidos 201 20ms
+2027-05-14 14:19:27 INFO healthcheck ok
+2027-05-14 14:19:29 INFO GET /api/relatorios 200 117ms
+2027-05-14 14:19:30 INFO cache hit chave=relatorio:5873
+2027-05-14 14:19:31 INFO healthcheck ok
+2027-05-14 14:19:33 INFO POST /api/pedidos 201 117ms
+2027-05-14 14:19:36 INFO job agendado concluido id=667
+2027-05-14 14:19:39 WARN cache: latência alta no redis (572ms)
+2027-05-14 14:19:41 INFO POST /api/pedidos 201 84ms
+2027-05-14 14:19:43 INFO GET /api/relatorios 200 78ms
+2027-05-14 14:19:46 INFO GET /api/relatorios 200 57ms
+2027-05-14 14:19:48 INFO GET /api/usuarios/7958 200 105ms
+2027-05-14 14:19:51 INFO job agendado concluido id=6655
+2027-05-14 14:19:53 INFO POST /api/pedidos 201 55ms
+2027-05-14 14:19:55 INFO GET /api/relatorios 200 29ms
+2027-05-14 14:19:57 INFO GET /api/relatorios 200 35ms
+2027-05-14 14:20:00 WARN cache: latência alta no redis (414ms)
+2027-05-14 14:20:03 INFO GET /api/usuarios/5198 200 56ms
+2027-05-14 14:20:05 INFO POST /api/pedidos 201 96ms
+2027-05-14 14:20:06 INFO GET /api/usuarios/3024 200 60ms
+2027-05-14 14:20:09 INFO cache hit chave=relatorio:5968
+2027-05-14 14:20:12 INFO job agendado concluido id=4107
+2027-05-14 14:20:13 INFO healthcheck ok
+2027-05-14 14:20:14 INFO job agendado concluido id=8456
+2027-05-14 14:20:16 INFO cache hit chave=relatorio:9812
+2027-05-14 14:20:19 INFO POST /api/pedidos 201 88ms
+2027-05-14 14:20:22 INFO job agendado concluido id=6742
+2027-05-14 14:20:24 INFO healthcheck ok
+2027-05-14 14:20:25 INFO POST /api/pedidos 201 36ms
+2027-05-14 14:20:28 INFO POST /api/pedidos 201 88ms
+2027-05-14 14:20:31 WARN api: requisição lenta GET /api/relatorios (802ms)
+2027-05-14 14:20:32 INFO POST /api/pedidos 201 71ms
+2027-05-14 14:20:34 INFO job agendado concluido id=3439
+2027-05-14 14:20:35 INFO POST /api/pedidos 201 46ms
+2027-05-14 14:20:38 INFO GET /api/relatorios 200 73ms
+2027-05-14 14:20:39 INFO GET /api/usuarios/1902 200 101ms
+2027-05-14 14:20:42 INFO GET /api/relatorios 200 36ms
+2027-05-14 14:20:44 INFO POST /api/pedidos 201 64ms
+2027-05-14 14:20:46 INFO POST /api/pedidos 201 69ms
+2027-05-14 14:20:48 INFO healthcheck ok
+2027-05-14 14:20:50 INFO POST /api/pedidos 201 89ms
+2027-05-14 14:20:53 WARN gc: pausa de 501ms
+2027-05-14 14:20:55 INFO cache hit chave=relatorio:4251
+2027-05-14 14:20:57 INFO job agendado concluido id=3587
+2027-05-14 14:20:58 INFO cache hit chave=relatorio:4138
+2027-05-14 14:21:01 INFO POST /api/pedidos 201 63ms
+2027-05-14 14:21:02 INFO GET /api/relatorios 200 66ms
+2027-05-14 14:21:04 INFO healthcheck ok
+2027-05-14 14:21:07 INFO job agendado concluido id=9699
+2027-05-14 14:21:10 INFO cache hit chave=relatorio:1349
+2027-05-14 14:21:11 INFO GET /api/relatorios 200 114ms
+2027-05-14 14:21:12 INFO cache hit chave=relatorio:9599
+2027-05-14 14:21:13 INFO cache hit chave=relatorio:829
+2027-05-14 14:21:16 WARN api: requisição lenta GET /api/relatorios (709ms)
+2027-05-14 14:21:18 INFO job agendado concluido id=472
+2027-05-14 14:21:21 WARN gc: pausa de 505ms
+2027-05-14 14:21:23 INFO GET /api/relatorios 200 87ms
+2027-05-14 14:21:26 INFO GET /api/relatorios 200 10ms
+2027-05-14 14:21:28 INFO job agendado concluido id=8562
+2027-05-14 14:21:29 INFO GET /api/usuarios/7693 200 50ms
+2027-05-14 14:21:30 INFO job agendado concluido id=3490
+2027-05-14 14:21:31 INFO POST /api/pedidos 201 15ms
+2027-05-14 14:21:33 INFO GET /api/relatorios 200 120ms
+2027-05-14 14:21:34 INFO GET /api/relatorios 200 41ms
+2027-05-14 14:21:36 INFO GET /api/relatorios 200 64ms
+2027-05-14 14:21:39 INFO healthcheck ok
+2027-05-14 14:21:40 INFO GET /api/usuarios/8070 200 120ms
+2027-05-14 14:21:41 INFO job agendado concluido id=3396
+2027-05-14 14:21:42 INFO cache hit chave=relatorio:9407
+2027-05-14 14:21:45 INFO GET /api/usuarios/1769 200 64ms
+2027-05-14 14:21:46 INFO job agendado concluido id=239
+2027-05-14 14:21:47 INFO cache hit chave=relatorio:5778
+2027-05-14 14:21:48 WARN cache: latência alta no redis (638ms)
+2027-05-14 14:21:51 INFO cache hit chave=relatorio:8247
+2027-05-14 14:21:52 INFO GET /api/usuarios/9011 200 35ms
+2027-05-14 14:21:53 INFO POST /api/pedidos 201 92ms
+2027-05-14 14:21:56 WARN cache: latência alta no redis (857ms)
+2027-05-14 14:21:58 INFO cache hit chave=relatorio:8830
+2027-05-14 14:22:00 INFO GET /api/relatorios 200 90ms
+2027-05-14 14:22:01 INFO cache hit chave=relatorio:8367
+2027-05-14 14:22:04 WARN gc: pausa de 866ms
+2027-05-14 14:22:05 INFO cache hit chave=relatorio:5128
+2027-05-14 14:22:08 INFO GET /api/relatorios 200 32ms
+2027-05-14 14:22:09 INFO healthcheck ok
+2027-05-14 14:22:12 INFO GET /api/usuarios/6310 200 10ms
+2027-05-14 14:22:14 INFO healthcheck ok
+2027-05-14 14:22:16 WARN gc: pausa de 648ms
+2027-05-14 14:22:19 INFO POST /api/pedidos 201 49ms
+2027-05-14 14:22:20 INFO cache hit chave=relatorio:8149
+2027-05-14 14:22:23 INFO healthcheck ok
+2027-05-14 14:22:24 INFO GET /api/usuarios/689 200 108ms
+2027-05-14 14:22:25 INFO job agendado concluido id=1442
+2027-05-14 14:22:28 INFO cache hit chave=relatorio:7224
+2027-05-14 14:22:30 INFO healthcheck ok
+2027-05-14 14:22:33 INFO job agendado concluido id=1921
+2027-05-14 14:22:36 INFO POST /api/pedidos 201 40ms
+2027-05-14 14:22:39 INFO GET /api/usuarios/5255 200 32ms
+2027-05-14 14:22:40 INFO healthcheck ok
+2027-05-14 14:22:42 INFO GET /api/usuarios/6634 200 119ms
+2027-05-14 14:22:43 INFO GET /api/relatorios 200 98ms
+2027-05-14 14:22:45 WARN api: requisição lenta GET /api/relatorios (675ms)
+2027-05-14 14:22:46 INFO job agendado concluido id=586
+2027-05-14 14:22:47 WARN api: requisição lenta GET /api/relatorios (372ms)
+2027-05-14 14:22:48 INFO cache hit chave=relatorio:6895
+2027-05-14 14:22:49 INFO cache hit chave=relatorio:267
+2027-05-14 14:22:51 INFO GET /api/usuarios/421 200 113ms
+2027-05-14 14:22:53 INFO healthcheck ok
+2027-05-14 14:22:55 WARN gc: pausa de 414ms
+2027-05-14 14:22:57 INFO GET /api/usuarios/7717 200 112ms
+2027-05-14 14:23:00 INFO job agendado concluido id=97
+2027-05-14 14:23:02 INFO POST /api/pedidos 201 66ms
+2027-05-14 14:23:03 INFO cache hit chave=relatorio:6014
+2027-05-14 14:23:04 INFO POST /api/pedidos 201 116ms
+2027-05-14 14:23:06 INFO GET /api/relatorios 200 103ms
+2027-05-14 14:23:07 INFO GET /api/relatorios 200 71ms
+2027-05-14 14:23:08 INFO cache hit chave=relatorio:7841
+2027-05-14 14:23:09 INFO GET /api/relatorios 200 55ms
+2027-05-14 14:23:12 INFO GET /api/usuarios/877 200 72ms
+2027-05-14 14:23:15 INFO POST /api/pedidos 201 88ms
+2027-05-14 14:23:16 INFO healthcheck ok
+2027-05-14 14:23:19 INFO GET /api/usuarios/4216 200 80ms
+2027-05-14 14:23:20 INFO healthcheck ok
+2027-05-14 14:23:21 INFO job agendado concluido id=9535
+2027-05-14 14:23:24 INFO healthcheck ok
+2027-05-14 14:23:25 INFO healthcheck ok
+2027-05-14 14:23:27 INFO job agendado concluido id=8745
+2027-05-14 14:23:28 INFO GET /api/relatorios 200 105ms
+2027-05-14 14:23:29 INFO cache hit chave=relatorio:4599
+2027-05-14 14:23:31 INFO cache hit chave=relatorio:4000
+2027-05-14 14:23:32 INFO GET /api/usuarios/5030 200 61ms
+2027-05-14 14:23:34 INFO GET /api/usuarios/9276 200 74ms
+2027-05-14 14:23:37 INFO GET /api/usuarios/852 200 103ms
+2027-05-14 14:23:40 INFO job agendado concluido id=1911
+2027-05-14 14:23:42 INFO job agendado concluido id=3214
+2027-05-14 14:23:43 INFO GET /api/relatorios 200 111ms
+2027-05-14 14:23:45 WARN gc: pausa de 747ms
+2027-05-14 14:23:47 INFO POST /api/pedidos 201 58ms
+2027-05-14 14:23:50 INFO healthcheck ok
+2027-05-14 14:23:52 INFO cache hit chave=relatorio:1660
+2027-05-14 14:23:54 WARN api: requisição lenta GET /api/relatorios (731ms)
+2027-05-14 14:23:57 INFO healthcheck ok
+2027-05-14 14:23:58 INFO job agendado concluido id=6637
+2027-05-14 14:24:01 INFO cache hit chave=relatorio:4311
+2027-05-14 14:24:03 INFO job agendado concluido id=6056
+2027-05-14 14:24:05 INFO GET /api/relatorios 200 84ms
+2027-05-14 14:24:06 INFO healthcheck ok
+2027-05-14 14:24:08 INFO GET /api/relatorios 200 70ms
+2027-05-14 14:24:10 INFO job agendado concluido id=8181
+2027-05-14 14:24:12 INFO POST /api/pedidos 201 15ms
+2027-05-14 14:24:15 INFO GET /api/usuarios/6395 200 17ms
+2027-05-14 14:24:18 INFO cache hit chave=relatorio:1005
+2027-05-14 14:24:19 INFO GET /api/usuarios/4757 200 100ms
+2027-05-14 14:24:20 INFO GET /api/relatorios 200 48ms
+2027-05-14 14:24:23 INFO cache hit chave=relatorio:1857
+2027-05-14 14:24:26 WARN api: requisição lenta GET /api/relatorios (885ms)
+2027-05-14 14:24:28 INFO job agendado concluido id=544
+2027-05-14 14:24:29 INFO GET /api/usuarios/6872 200 102ms
+2027-05-14 14:24:31 INFO POST /api/pedidos 201 91ms
+2027-05-14 14:24:33 INFO healthcheck ok
+2027-05-14 14:24:36 INFO POST /api/pedidos 201 15ms
+2027-05-14 14:24:38 INFO GET /api/relatorios 200 53ms
+2027-05-14 14:24:41 WARN cache: latência alta no redis (471ms)
+2027-05-14 14:24:43 INFO GET /api/relatorios 200 99ms
+2027-05-14 14:24:46 INFO cache hit chave=relatorio:7810
+2027-05-14 14:24:48 INFO cache hit chave=relatorio:9153
+2027-05-14 14:24:50 INFO GET /api/usuarios/751 200 64ms
+2027-05-14 14:24:51 INFO cache hit chave=relatorio:4691
+2027-05-14 14:24:52 INFO GET /api/relatorios 200 12ms
+2027-05-14 14:24:55 INFO GET /api/relatorios 200 82ms
+2027-05-14 14:24:58 INFO POST /api/pedidos 201 99ms
+2027-05-14 14:25:01 INFO GET /api/usuarios/592 200 106ms
+2027-05-14 14:25:02 INFO job agendado concluido id=2684
+2027-05-14 14:25:03 INFO healthcheck ok
+2027-05-14 14:25:04 INFO GET /api/relatorios 200 8ms
+2027-05-14 14:25:06 INFO job agendado concluido id=715
+2027-05-14 14:25:07 WARN cache: latência alta no redis (459ms)
+2027-05-14 14:25:08 INFO healthcheck ok
+2027-05-14 14:25:10 WARN api: requisição lenta GET /api/relatorios (335ms)
+2027-05-14 14:25:11 INFO job agendado concluido id=6719
+2027-05-14 14:25:12 INFO job agendado concluido id=3950
+2027-05-14 14:25:13 INFO GET /api/relatorios 200 76ms
+2027-05-14 14:25:16 INFO cache hit chave=relatorio:5016
+2027-05-14 14:25:18 INFO POST /api/pedidos 201 39ms
+2027-05-14 14:25:21 INFO job agendado concluido id=1604
+2027-05-14 14:25:24 INFO POST /api/pedidos 201 115ms
+2027-05-14 14:25:26 INFO cache hit chave=relatorio:8599
+2027-05-14 14:25:27 WARN gc: pausa de 830ms
+2027-05-14 14:25:28 INFO job agendado concluido id=6025
+2027-05-14 14:25:31 WARN cache: latência alta no redis (354ms)
+2027-05-14 14:25:34 INFO GET /api/relatorios 200 32ms
+2027-05-14 14:25:35 INFO job agendado concluido id=663
+2027-05-14 14:25:38 WARN gc: pausa de 377ms
+2027-05-14 14:25:39 INFO GET /api/usuarios/8344 200 81ms
+2027-05-14 14:25:42 INFO GET /api/relatorios 200 88ms
+2027-05-14 14:25:43 INFO GET /api/usuarios/3141 200 18ms
+2027-05-14 14:25:46 INFO job agendado concluido id=55
+2027-05-14 14:25:49 INFO cache hit chave=relatorio:8223
+2027-05-14 14:25:51 INFO healthcheck ok
+2027-05-14 14:25:54 INFO GET /api/usuarios/8059 200 82ms
+2027-05-14 14:25:56 INFO cache hit chave=relatorio:2333
+2027-05-14 14:25:58 INFO job agendado concluido id=5366
+2027-05-14 14:26:00 INFO cache hit chave=relatorio:8537
+2027-05-14 14:26:02 INFO healthcheck ok
+2027-05-14 14:26:04 INFO POST /api/pedidos 201 76ms
+2027-05-14 14:26:06 INFO GET /api/relatorios 200 40ms
+2027-05-14 14:26:08 INFO GET /api/usuarios/4869 200 69ms
+2027-05-14 14:26:09 INFO cache hit chave=relatorio:1743
+2027-05-14 14:26:12 INFO cache hit chave=relatorio:5824
+2027-05-14 14:26:15 INFO GET /api/relatorios 200 70ms
+2027-05-14 14:26:16 INFO POST /api/pedidos 201 106ms
+2027-05-14 14:26:17 INFO POST /api/pedidos 201 70ms
+2027-05-14 14:26:18 WARN gc: pausa de 461ms
+2027-05-14 14:26:21 INFO GET /api/relatorios 200 61ms
+2027-05-14 14:26:22 INFO GET /api/relatorios 200 51ms
+2027-05-14 14:26:23 INFO healthcheck ok
+2027-05-14 14:26:25 INFO GET /api/usuarios/647 200 117ms
+2027-05-14 14:26:26 INFO healthcheck ok
+2027-05-14 14:26:27 INFO GET /api/relatorios 200 119ms
+2027-05-14 14:26:30 INFO GET /api/usuarios/3246 200 66ms
+2027-05-14 14:26:33 INFO job agendado concluido id=6793
+2027-05-14 14:26:36 INFO cache hit chave=relatorio:8048
+2027-05-14 14:26:37 INFO POST /api/pedidos 201 68ms
+2027-05-14 14:26:39 INFO cache hit chave=relatorio:4368
+2027-05-14 14:26:40 INFO job agendado concluido id=6371
+2027-05-14 14:26:41 WARN cache: latência alta no redis (844ms)
+2027-05-14 14:26:43 INFO job agendado concluido id=9011
+2027-05-14 14:26:46 INFO cache hit chave=relatorio:7087
+2027-05-14 14:26:47 WARN api: requisição lenta GET /api/relatorios (489ms)
+2027-05-14 14:26:49 INFO GET /api/usuarios/7249 200 108ms
+2027-05-14 14:26:51 INFO job agendado concluido id=322
+2027-05-14 14:26:53 INFO GET /api/relatorios 200 120ms
+2027-05-14 14:26:55 INFO GET /api/usuarios/2729 200 107ms
+2027-05-14 14:26:58 INFO GET /api/relatorios 200 65ms
+2027-05-14 14:27:01 INFO healthcheck ok
+2027-05-14 14:27:02 INFO GET /api/relatorios 200 47ms
+2027-05-14 14:27:04 INFO GET /api/usuarios/4007 200 82ms
+2027-05-14 14:27:07 INFO GET /api/relatorios 200 111ms
+2027-05-14 14:27:10 INFO GET /api/usuarios/1732 200 31ms
+2027-05-14 14:27:12 INFO job agendado concluido id=3119
+2027-05-14 14:27:13 INFO POST /api/pedidos 201 113ms
+2027-05-14 14:27:14 INFO GET /api/relatorios 200 56ms
+2027-05-14 14:27:17 INFO POST /api/pedidos 201 82ms
+2027-05-14 14:27:18 INFO GET /api/usuarios/4408 200 88ms
+2027-05-14 14:27:19 INFO cache hit chave=relatorio:1856
+2027-05-14 14:27:21 INFO healthcheck ok
+2027-05-14 14:27:24 INFO healthcheck ok
+2027-05-14 14:27:27 INFO job agendado concluido id=4722
+2027-05-14 14:27:30 INFO GET /api/usuarios/199 200 21ms
+2027-05-14 14:27:32 INFO cache hit chave=relatorio:6199
+2027-05-14 14:27:35 INFO POST /api/pedidos 201 38ms
+2027-05-14 14:27:38 INFO GET /api/usuarios/1422 200 108ms
+2027-05-14 14:27:39 WARN cache: latência alta no redis (444ms)
+2027-05-14 14:27:42 INFO GET /api/relatorios 200 85ms
+2027-05-14 14:27:44 INFO job agendado concluido id=4658
+2027-05-14 14:27:45 INFO job agendado concluido id=6448
+2027-05-14 14:27:46 INFO POST /api/pedidos 201 30ms
+2027-05-14 14:27:47 INFO POST /api/pedidos 201 91ms
+2027-05-14 14:27:48 INFO GET /api/relatorios 200 108ms
+2027-05-14 14:27:51 INFO job agendado concluido id=8570
+2027-05-14 14:27:54 INFO healthcheck ok
+2027-05-14 14:27:56 INFO POST /api/pedidos 201 71ms
+2027-05-14 14:27:58 INFO GET /api/usuarios/6517 200 94ms
+2027-05-14 14:28:01 INFO healthcheck ok
+2027-05-14 14:28:04 INFO GET /api/usuarios/2024 200 64ms
+2027-05-14 14:28:07 INFO healthcheck ok
+2027-05-14 14:28:10 INFO GET /api/usuarios/6497 200 115ms
+2027-05-14 14:28:11 INFO job agendado concluido id=8807
+2027-05-14 14:28:14 INFO GET /api/usuarios/1817 200 106ms
+2027-05-14 14:28:15 INFO job agendado concluido id=6846
+2027-05-14 14:28:16 INFO job agendado concluido id=2193
+2027-05-14 14:28:18 INFO cache hit chave=relatorio:4273
+2027-05-14 14:28:19 INFO GET /api/relatorios 200 38ms
+2027-05-14 14:28:22 INFO GET /api/usuarios/36 200 48ms
+2027-05-14 14:28:25 INFO healthcheck ok
+2027-05-14 14:28:28 INFO POST /api/pedidos 201 45ms
+2027-05-14 14:28:29 INFO healthcheck ok
+2027-05-14 14:28:30 WARN api: requisição lenta GET /api/relatorios (681ms)
+2027-05-14 14:28:31 INFO job agendado concluido id=1218
+2027-05-14 14:28:34 INFO GET /api/usuarios/7540 200 19ms
+2027-05-14 14:28:35 INFO GET /api/relatorios 200 81ms
+2027-05-14 14:28:36 INFO cache hit chave=relatorio:1770
+2027-05-14 14:28:38 INFO GET /api/relatorios 200 98ms
+2027-05-14 14:28:41 INFO healthcheck ok
+2027-05-14 14:28:44 INFO GET /api/usuarios/148 200 66ms
+2027-05-14 14:28:45 INFO GET /api/relatorios 200 79ms
+2027-05-14 14:28:47 INFO cache hit chave=relatorio:9499
+2027-05-14 14:28:50 INFO healthcheck ok
+2027-05-14 14:28:51 INFO GET /api/usuarios/8764 200 85ms
+2027-05-14 14:28:52 INFO job agendado concluido id=3093
+2027-05-14 14:28:53 INFO cache hit chave=relatorio:583
+2027-05-14 14:28:55 INFO cache hit chave=relatorio:9586
+2027-05-14 14:28:58 WARN gc: pausa de 312ms
+2027-05-14 14:29:00 INFO POST /api/pedidos 201 43ms
+2027-05-14 14:29:03 INFO POST /api/pedidos 201 36ms
+2027-05-14 14:29:05 INFO GET /api/relatorios 200 100ms
+2027-05-14 14:29:06 INFO GET /api/usuarios/1415 200 55ms
+2027-05-14 14:29:07 INFO GET /api/relatorios 200 68ms
+2027-05-14 14:29:08 INFO healthcheck ok
+2027-05-14 14:29:10 INFO cache hit chave=relatorio:767
+2027-05-14 14:29:13 INFO healthcheck ok
+2027-05-14 14:29:14 INFO healthcheck ok
+2027-05-14 14:29:16 INFO POST /api/pedidos 201 98ms
+2027-05-14 14:29:19 INFO GET /api/relatorios 200 70ms
+2027-05-14 14:29:22 INFO GET /api/usuarios/5036 200 8ms
+2027-05-14 14:29:25 INFO POST /api/pedidos 201 53ms
+2027-05-14 14:29:27 INFO POST /api/pedidos 201 89ms
+2027-05-14 14:29:28 INFO cache hit chave=relatorio:1818
+2027-05-14 14:29:31 INFO cache hit chave=relatorio:4650
+2027-05-14 14:29:33 INFO GET /api/usuarios/3095 200 58ms
+2027-05-14 14:29:34 INFO cache hit chave=relatorio:1732
+2027-05-14 14:29:37 INFO job agendado concluido id=8781
+2027-05-14 14:29:39 INFO job agendado concluido id=8460
+2027-05-14 14:29:42 INFO GET /api/usuarios/1249 200 103ms
+2027-05-14 14:29:43 INFO job agendado concluido id=4904
+2027-05-14 14:29:44 INFO job agendado concluido id=8734
+2027-05-14 14:29:45 WARN api: requisição lenta GET /api/relatorios (472ms)
+2027-05-14 14:29:48 INFO GET /api/usuarios/9967 200 118ms
+2027-05-14 14:29:49 INFO GET /api/usuarios/9875 200 42ms
+2027-05-14 14:29:52 INFO GET /api/relatorios 200 65ms
+2027-05-14 14:29:53 INFO POST /api/pedidos 201 109ms
+2027-05-14 14:29:55 INFO GET /api/relatorios 200 107ms
+2027-05-14 14:29:56 INFO GET /api/relatorios 200 78ms
+2027-05-14 14:29:59 INFO POST /api/pedidos 201 66ms
+2027-05-14 14:30:00 INFO job agendado concluido id=5989
+2027-05-14 14:30:02 INFO healthcheck ok
+2027-05-14 14:30:03 INFO cache hit chave=relatorio:9285
+2027-05-14 14:30:06 INFO GET /api/relatorios 200 27ms
+2027-05-14 14:30:07 INFO POST /api/pedidos 201 92ms
+2027-05-14 14:30:09 INFO GET /api/relatorios 200 74ms
+2027-05-14 14:30:11 INFO job agendado concluido id=3032
+2027-05-14 14:30:12 INFO POST /api/pedidos 201 93ms
+2027-05-14 14:30:15 INFO job agendado concluido id=137
+2027-05-14 14:30:18 INFO GET /api/relatorios 200 120ms
+2027-05-14 14:30:21 INFO cache hit chave=relatorio:7458
+2027-05-14 14:30:24 INFO POST /api/pedidos 201 29ms
+2027-05-14 14:30:26 INFO healthcheck ok
+2027-05-14 14:30:27 INFO POST /api/pedidos 201 61ms
+2027-05-14 14:30:30 INFO GET /api/relatorios 200 108ms
+2027-05-14 14:30:33 WARN api: requisição lenta GET /api/relatorios (568ms)
+2027-05-14 14:30:36 INFO GET /api/usuarios/4139 200 84ms
+2027-05-14 14:30:38 INFO healthcheck ok
+2027-05-14 14:30:40 INFO GET /api/relatorios 200 64ms
+2027-05-14 14:30:41 INFO POST /api/pedidos 201 73ms
+2027-05-14 14:30:42 INFO GET /api/relatorios 200 75ms
+2027-05-14 14:30:45 INFO job agendado concluido id=2797
+2027-05-14 14:30:48 INFO GET /api/relatorios 200 71ms
+2027-05-14 14:30:51 INFO GET /api/relatorios 200 85ms
+2027-05-14 14:30:54 INFO GET /api/relatorios 200 75ms
+2027-05-14 14:30:55 INFO GET /api/relatorios 200 47ms
+2027-05-14 14:30:58 INFO healthcheck ok
+2027-05-14 14:31:00 INFO GET /api/usuarios/6680 200 93ms
+2027-05-14 14:31:01 INFO GET /api/usuarios/828 200 72ms
+2027-05-14 14:31:04 INFO job agendado concluido id=768
+2027-05-14 14:31:07 INFO healthcheck ok
+2027-05-14 14:31:09 INFO cache hit chave=relatorio:5398
+2027-05-14 14:31:12 INFO GET /api/relatorios 200 85ms
+2027-05-14 14:31:14 INFO healthcheck ok
+2027-05-14 14:31:16 WARN gc: pausa de 637ms
+2027-05-14 14:31:17 INFO GET /api/usuarios/6105 200 27ms
+2027-05-14 14:31:18 INFO job agendado concluido id=377
+2027-05-14 14:31:19 INFO GET /api/relatorios 200 37ms
+2027-05-14 14:31:20 INFO cache hit chave=relatorio:2892
+2027-05-14 14:31:23 INFO cache hit chave=relatorio:3492
+2027-05-14 14:31:26 INFO GET /api/usuarios/830 200 102ms
+2027-05-14 14:31:28 INFO GET /api/usuarios/1050 200 17ms
+2027-05-14 14:31:31 INFO GET /api/relatorios 200 106ms
+2027-05-14 14:31:33 INFO cache hit chave=relatorio:2216
+2027-05-14 14:31:34 INFO healthcheck ok
+2027-05-14 14:31:36 INFO cache hit chave=relatorio:3683
+2027-05-14 14:31:37 INFO cache hit chave=relatorio:3402
+2027-05-14 14:31:38 INFO GET /api/relatorios 200 101ms
+2027-05-14 14:31:41 INFO POST /api/pedidos 201 39ms
+2027-05-14 14:31:42 INFO job agendado concluido id=9857
+2027-05-14 14:31:43 INFO healthcheck ok
+2027-05-14 14:31:44 INFO GET /api/relatorios 200 79ms
+2027-05-14 14:31:47 INFO GET /api/relatorios 200 56ms
+2027-05-14 14:31:49 INFO job agendado concluido id=532
+2027-05-14 14:31:50 INFO job agendado concluido id=3250
+2027-05-14 14:31:51 INFO GET /api/relatorios 200 29ms
+2027-05-14 14:31:53 INFO cache hit chave=relatorio:1116
+2027-05-14 14:31:56 WARN cache: latência alta no redis (385ms)
+2027-05-14 14:31:59 INFO cache hit chave=relatorio:2353
+2027-05-14 14:32:01 INFO POST /api/pedidos 201 58ms
+2027-05-14 14:32:03 INFO healthcheck ok
+2027-05-14 14:32:06 INFO job agendado concluido id=7419
+2027-05-14 14:32:07 ERROR db: pool de conexões esgotado (max_conexoes=10, em_uso=10, fila=37)
+2027-05-14 14:32:09 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:12 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:14 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:17 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:19 INFO job agendado concluido id=3020
+2027-05-14 14:32:21 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:22 INFO GET /api/relatorios 200 116ms
+2027-05-14 14:32:23 INFO POST /api/pedidos 201 92ms
+2027-05-14 14:32:26 INFO GET /api/usuarios/3149 200 78ms
+2027-05-14 14:32:27 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:28 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:29 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:31 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:33 INFO POST /api/pedidos 201 68ms
+2027-05-14 14:32:36 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:38 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:39 INFO GET /api/usuarios/4028 200 33ms
+2027-05-14 14:32:40 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:42 INFO cache hit chave=relatorio:1566
+2027-05-14 14:32:45 INFO GET /api/relatorios 200 72ms
+2027-05-14 14:32:46 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:49 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:50 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:53 INFO GET /api/relatorios 200 45ms
+2027-05-14 14:32:54 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:56 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:32:59 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:01 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:04 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:05 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:08 WARN api: requisição lenta GET /api/relatorios (627ms)
+2027-05-14 14:33:10 INFO cache hit chave=relatorio:1143
+2027-05-14 14:33:11 INFO job agendado concluido id=9120
+2027-05-14 14:33:14 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:17 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:19 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:22 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:24 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:27 INFO job agendado concluido id=4703
+2027-05-14 14:33:28 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:29 INFO GET /api/relatorios 200 13ms
+2027-05-14 14:33:32 INFO GET /api/relatorios 200 10ms
+2027-05-14 14:33:33 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:34 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:37 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:39 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:40 INFO POST /api/pedidos 201 110ms
+2027-05-14 14:33:43 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:46 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:49 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:51 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:33:53 INFO GET /api/usuarios/1289 200 103ms
+2027-05-14 14:33:56 INFO GET /api/usuarios/3434 200 24ms
+2027-05-14 14:33:59 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:00 INFO job agendado concluido id=4298
+2027-05-14 14:34:03 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:04 INFO healthcheck ok
+2027-05-14 14:34:07 INFO GET /api/relatorios 200 82ms
+2027-05-14 14:34:09 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:12 INFO GET /api/relatorios 200 107ms
+2027-05-14 14:34:15 INFO GET /api/usuarios/4878 200 115ms
+2027-05-14 14:34:18 INFO cache hit chave=relatorio:6210
+2027-05-14 14:34:19 INFO job agendado concluido id=3795
+2027-05-14 14:34:21 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:23 INFO GET /api/usuarios/1712 200 82ms
+2027-05-14 14:34:24 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:26 INFO POST /api/pedidos 201 99ms
+2027-05-14 14:34:28 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:29 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:31 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:34 INFO job agendado concluido id=824
+2027-05-14 14:34:36 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:39 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:41 INFO healthcheck ok
+2027-05-14 14:34:44 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:47 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:49 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:51 WARN gc: pausa de 698ms
+2027-05-14 14:34:54 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:56 INFO job agendado concluido id=7042
+2027-05-14 14:34:58 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:34:59 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:00 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:03 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:05 WARN cache: latência alta no redis (875ms)
+2027-05-14 14:35:06 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:09 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:10 INFO job agendado concluido id=2696
+2027-05-14 14:35:12 INFO GET /api/usuarios/9975 200 8ms
+2027-05-14 14:35:13 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:16 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:19 INFO GET /api/usuarios/7070 200 43ms
+2027-05-14 14:35:22 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:23 INFO healthcheck ok
+2027-05-14 14:35:26 INFO GET /api/relatorios 200 70ms
+2027-05-14 14:35:29 INFO job agendado concluido id=4570
+2027-05-14 14:35:30 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:33 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:36 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:38 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:41 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:44 INFO POST /api/pedidos 201 51ms
+2027-05-14 14:35:46 INFO cache hit chave=relatorio:6390
+2027-05-14 14:35:47 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:50 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:53 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:55 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:57 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:58 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:35:59 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:00 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:03 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:06 INFO healthcheck ok
+2027-05-14 14:36:08 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:11 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:13 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:15 WARN gc: pausa de 832ms
+2027-05-14 14:36:17 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:18 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:20 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:21 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:23 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:25 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:27 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:29 INFO POST /api/pedidos 201 116ms
+2027-05-14 14:36:30 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:31 INFO GET /api/usuarios/9442 200 26ms
+2027-05-14 14:36:32 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:34 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:37 INFO job agendado concluido id=9904
+2027-05-14 14:36:38 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:41 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:44 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:45 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:46 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:49 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:52 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:54 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:56 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:36:58 INFO GET /api/relatorios 200 31ms
+2027-05-14 14:37:01 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:04 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:07 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:08 INFO healthcheck ok
+2027-05-14 14:37:11 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:12 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:14 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:16 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:19 INFO GET /api/relatorios 200 64ms
+2027-05-14 14:37:20 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:23 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:25 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:26 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:28 INFO GET /api/relatorios 200 74ms
+2027-05-14 14:37:30 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:31 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:32 INFO GET /api/usuarios/5553 200 56ms
+2027-05-14 14:37:34 WARN api: requisição lenta GET /api/relatorios (776ms)
+2027-05-14 14:37:37 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:39 INFO POST /api/pedidos 201 79ms
+2027-05-14 14:37:42 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:44 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:45 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:48 INFO healthcheck ok
+2027-05-14 14:37:51 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:54 INFO cache hit chave=relatorio:7480
+2027-05-14 14:37:56 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:37:59 INFO GET /api/usuarios/1593 200 112ms
+2027-05-14 14:38:00 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:03 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:04 WARN gc: pausa de 361ms
+2027-05-14 14:38:05 INFO cache hit chave=relatorio:1002
+2027-05-14 14:38:08 INFO GET /api/usuarios/2651 200 41ms
+2027-05-14 14:38:09 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:11 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:13 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:14 INFO cache hit chave=relatorio:1472
+2027-05-14 14:38:15 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:16 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:18 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:20 INFO cache hit chave=relatorio:7375
+2027-05-14 14:38:23 INFO POST /api/pedidos 201 10ms
+2027-05-14 14:38:24 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:27 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:30 INFO GET /api/usuarios/7084 200 53ms
+2027-05-14 14:38:32 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:34 INFO job agendado concluido id=4672
+2027-05-14 14:38:37 INFO job agendado concluido id=6211
+2027-05-14 14:38:38 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:39 INFO healthcheck ok
+2027-05-14 14:38:42 INFO GET /api/usuarios/6772 200 39ms
+2027-05-14 14:38:45 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:47 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:50 INFO POST /api/pedidos 201 11ms
+2027-05-14 14:38:52 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:38:53 WARN api: requisição lenta GET /api/relatorios (515ms)
+2027-05-14 14:38:55 INFO POST /api/pedidos 201 100ms
+2027-05-14 14:38:56 INFO cache hit chave=relatorio:5530
+2027-05-14 14:38:57 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:00 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:01 INFO GET /api/relatorios 200 116ms
+2027-05-14 14:39:02 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:05 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:06 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:09 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:10 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:12 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:14 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:16 INFO healthcheck ok
+2027-05-14 14:39:18 INFO healthcheck ok
+2027-05-14 14:39:21 INFO POST /api/pedidos 201 80ms
+2027-05-14 14:39:23 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:24 INFO healthcheck ok
+2027-05-14 14:39:25 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:28 INFO job agendado concluido id=8995
+2027-05-14 14:39:29 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:30 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:33 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:34 INFO cache hit chave=relatorio:8696
+2027-05-14 14:39:37 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:39 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:42 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:44 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:46 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:49 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:51 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:54 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:56 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:39:58 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+2027-05-14 14:40:01 ERROR api: timeout aguardando conexão do banco após 30000ms (POST /api/pedidos)
+'''

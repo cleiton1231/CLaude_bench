@@ -50,7 +50,14 @@ def schemas(nomes: list[str]) -> list[dict]:
 # --- ferramentas do modo agente (sistema de arquivos virtual) ---
 AGENTE = {
     "listar_arquivos": _fn("listar_arquivos", "Lista todos os arquivos do projeto.", {}, []),
-    "ler_arquivo": _fn("ler_arquivo", "Lê o conteúdo de um arquivo do projeto.", {"caminho": S}, ["caminho"]),
+    "ler_arquivo": _fn("ler_arquivo", "Lê um arquivo do projeto. Arquivos longos podem ser lidos por trechos.", {
+        "caminho": S,
+        "linha_inicial": {"type": "integer", "description": "Primeira linha (1 = início). Opcional."},
+        "max_linhas": {"type": "integer", "description": "Quantas linhas ler (padrão 200). Opcional."},
+    }, ["caminho"]),
+    "buscar_no_projeto": _fn("buscar_no_projeto",
+                             "Busca um texto ou expressão regular em todos os arquivos; devolve arquivo:linha: conteúdo.",
+                             {"padrao": S}, ["padrao"]),
     "escrever_arquivo": _fn("escrever_arquivo",
                             "Sobrescreve (ou cria) um arquivo com o conteúdo completo informado.",
                             {"caminho": S, "conteudo": S}, ["caminho", "conteudo"]),

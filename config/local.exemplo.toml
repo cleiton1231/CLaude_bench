@@ -1,0 +1,14 @@
+# Copie para config/local.toml (ou rode scripts/instalar.sh). Fica fora do git.
+# Qualquer chave de config/hardware.toml pode ser sobrescrita aqui.
+
+[servidor]
+binario = "~/llama.cpp/build/bin/llama-server"
+porta = 8080
+
+[sandbox]
+modo = "auto"              # auto | bwrap | unshare | basico
+exigir_isolamento = false  # true = recusa rodar código do modelo sem bwrap
+
+# [bench]
+# seed = 1234              # mesma seed para todos os modelos de uma série
+# tok_s_referencia = 30

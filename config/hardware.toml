@@ -1,4 +1,5 @@
-# Configuração da máquina. Ajuste os caminhos para o seu sistema.
+# Padrões do projeto (versionado). NÃO edite para a sua máquina: use config/local.toml
+# (criado por scripts/instalar.sh; modelo em config/local.exemplo.toml), que sobrescreve este arquivo.
 
 [servidor]
 # llama.cpp compilado com Vulkan (-DGGML_VULKAN=ON). ROCm/HIP também funciona.
@@ -29,3 +30,15 @@ agente = 10
 ceticismo = 12
 redacao = 8
 contexto = 10
+
+# Isolamento do código gerado pelo modelo (casos de código e cenários de agente).
+[sandbox]
+# auto     = usa o melhor disponível: bwrap > unshare > basico
+# bwrap    = bubblewrap: sem rede, sistema somente-leitura, sem acesso ao seu $HOME (recomendado)
+# unshare  = só corta a rede; o código ainda enxerga e pode gravar nos seus arquivos
+# basico   = só limites de CPU/memória/tempo
+modo = "auto"
+# true = recusa rodar código se o melhor nível disponível não for bwrap
+exigir_isolamento = false
+memoria_mb = 1024
+cpu_s = 20

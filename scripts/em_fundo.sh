@@ -4,8 +4,8 @@
 source "$(dirname "$0")/_comum.sh"
 ETAPA="${1:?uso: $0 <script> <id> [args]}"; shift
 ID="${1:?id do modelo}"
-mkdir -p "resultados/$ID/logs"
-LOG="resultados/$ID/logs/${ETAPA%.sh}.log"
+mkdir -p "$RES/$ID/logs"
+LOG="$RES/$ID/logs/${ETAPA%.sh}.log"
 nohup "$RAIZ/scripts/$ETAPA" "$@" >"$LOG" 2>&1 &
-echo $! > "resultados/$ID/logs/${ETAPA%.sh}.pid"
+echo $! > "$RES/$ID/logs/${ETAPA%.sh}.pid"
 echo "rodando em segundo plano: pid $! · log $LOG"
