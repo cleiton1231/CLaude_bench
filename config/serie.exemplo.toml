@@ -1,0 +1,8 @@
+# Copie para config/serie.toml para fixar QUAIS modelos entram na série e em que ORDEM.
+# Sem este arquivo, a série são todos os perfis de config/modelos/ (menos exemplo-*), em ordem alfabética.
+# Os nomes são os ids dos perfis (nome do arquivo sem .toml).
+
+modelos = [
+  "qwen3-5-9b-q8-0",
+  "bonsai-27b-pq2-0",
+]

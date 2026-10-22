@@ -6,3 +6,4 @@ config/local.toml
 config/selecao.toml
 config/modelos/*
 !config/modelos/exemplo-*.toml
+config/serie.toml

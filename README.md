@@ -11,7 +11,7 @@ operado por um agente de IA, um modelo por vez, com placar estilo **ENEM** e par
 - **Só a biblioteca padrão do Python (≥ 3.11).** Nada de `pip install`.
 - **Retomável** e **à prova de erro de servidor**: HTTP 500 ou timeout não vira nota zero; o caso é refeito.
 - **Problemas originais e dados sintéticos** (nada de HumanEval/MMLU) para reduzir contaminação.
-- **126 testes automatizados** offline + CI no GitHub Actions (Python 3.11–3.13).
+- **142 testes automatizados** offline + CI no GitHub Actions (Python 3.11–3.13).
 
 ## Instalação
 
@@ -72,24 +72,48 @@ Os scripts pulam sozinhos as etapas fora da seleção, e o placar só considera 
 
 ```bash
 scripts/00_preflight.sh config/modelos/<perfil>.toml    # ambiente + sandbox + estimativa
-# passe AGENTE.md + JULGAMENTO.md para o agente e peça para ele rodar a série
+scripts/piloto.sh                                       # executa tudo o que é mecânico, sozinho
 ```
 
 Sem agente, `scripts/rodar_modelo.sh config/modelos/<id>.toml` roda tudo menos o julgamento.
+
+## Automação: o agente sabe sozinho o que fazer
+
+Abra o repositório no OpenCode, Codex ou Claude Code e peça “rode a série”. O `AGENTS.md` (o `CLAUDE.md`
+importa) é carregado automaticamente e manda o agente começar por:
+
+```bash
+python3 -m prova proximo         # próximo passo exato, deduzido do estado real (ou --json para máquina)
+scripts/piloto.sh                # faz sozinho todo o trabalho mecânico de todos os modelos
+```
+
+O `proximo` olha configuração, perfis, resultados, servidor, notas e parecer, e responde uma ação: `rodar`
+(com o comando), `julgar`, `parecer`, `corrigir` (o agente escreveu um arquivo fora do formato),
+`aguardar`, `bloqueado`, `configurar` ou `fim`, sempre com o motivo e o que conferir depois. Não guarda
+estado próprio, então funciona depois de qualquer interrupção.
+
+O piloto executa as ações `rodar` em sequência e para com um código de saída que o agente entende:
+0 série concluída · 10 sua vez (julgar/parecer/corrigir) · 20 avisar o humano · 1 comando falhou duas vezes.
+A ordem é pensada para rodar o máximo sem ninguém olhando: primeiro toda a parte de GPU de todos os
+modelos, depois os pacotes do juiz, os julgamentos, os placares e o comparativo, e por fim os pareceres.
+
+Quais modelos e em que ordem: `config/serie.toml` (modelo em `config/serie.exemplo.toml`).
 
 ## Árvore
 
 ```
 .
-├── AGENTE.md                 protocolo de execução para o agente
+├── AGENTS.md                 instruções do agente (lido automaticamente por OpenCode/Codex; CLAUDE.md importa)
 ├── JULGAMENTO.md             como julgar: escala 0–3, ENEM, leitura do relatório, modelo de parecer
 ├── config/
 │   ├── hardware.toml         padrões do projeto (não edite)
 │   ├── local.exemplo.toml    modelo do config/local.toml (sua máquina; criado pelo instalar.sh)
 │   ├── selecao.exemplo.toml  modelo do config/selecao.toml (o que rodar; criado pelo escolher.sh)
 │   ├── rodadas/*.toml        presets de seleção
+│   ├── serie.exemplo.toml    modelo do config/serie.toml (quais modelos, em que ordem)
 │   └── modelos/*.toml        um perfil por modelo
 ├── scripts/                  uma etapa por script — o agente roda um de cada vez
+│   ├── proximo.sh · piloto.sh  o que fazer agora / fazer sozinho
 │   ├── instalar.sh · escolher.sh · 00_preflight.sh
 │   ├── 01_subir_modelo.sh … 07_consistencia.sh, 11_criticos.sh   execução (retomáveis)
 │   ├── 08_pacote_juiz.sh · 09_pontuar.sh · 10_parar_modelo.sh · 99_comparar.sh
@@ -108,7 +132,7 @@ Sem agente, `scripts/rodar_modelo.sh config/modelos/<id>.toml` roda tudo menos o
 │                                  injeção no repositório, proteger segredos
 ├── prova/                    código (cliente, verificadores, sandbox, executor, seleção, pontuação…)
 ├── tests/                    testes offline, servidor e llama-server falsos, GGUF sintético
-└── resultados/<id>/          tudo que uma rodada produz (ver AGENTE.md)
+└── resultados/<id>/          tudo que uma rodada produz (ver AGENTS.md)
 ```
 
 ## O que é medido
@@ -174,6 +198,8 @@ O que é testado:
   simuladas, retomada, refazer só o que falhou), loop de agente roteirizado;
 - **contexto, perfis, seleção e pontuação**: geração determinística, leitura de GGUF sintético, presets,
   ENEM, critérios de crítico/completo;
+- **automação**: cada decisão do `proximo` (sem perfis, servidor de outro modelo, sanidade falha, notas e
+  parecer inválidos, piloto rodando) e uma série inteira de dois modelos com um agente simulado julgando;
 - **scripts**: `bash -n`, shellcheck, instalador, preflight e o ciclo 01→02→04→09→10 com um llama-server falso
   (inclusive que o 10 não derruba um llama-server seu em outra porta).
 

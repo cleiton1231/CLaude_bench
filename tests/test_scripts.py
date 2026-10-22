@@ -48,7 +48,8 @@ class TestSintaxe(unittest.TestCase):
         nomes = {s.name for s in SCRIPTS}
         for n in ("00_preflight", "01_subir_modelo", "02_sanidade", "03_desempenho", "04_suites", "05_agente",
                   "06_contexto", "07_consistencia", "08_pacote_juiz", "09_pontuar", "10_parar_modelo",
-                  "11_criticos", "99_comparar", "instalar", "escolher", "rodar_modelo", "ensaio_sem_gpu"):
+                  "11_criticos", "99_comparar", "instalar", "escolher", "rodar_modelo", "ensaio_sem_gpu",
+                  "proximo", "piloto"):
             self.assertIn(f"{n}.sh", nomes)
 
 

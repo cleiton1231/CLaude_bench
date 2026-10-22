@@ -77,7 +77,8 @@ def cmd_registrar_carga(a) -> int:
                        vram_base_gib=float(a.vram_base) if a.vram_base else None,
                        vram_carregado_gib=gpu.vram_usada(), gpu=gpu.leitura(),
                        carregado_em=time.strftime("%Y-%m-%dT%H:%M:%S"),
-                       seed=config.hardware()["bench"]["seed"], etapas={})
+                       seed=config.hardware()["bench"]["seed"], etapas={},
+                       sanidade=None)  # servidor novo: a sanidade precisa ser refeita
     m = config.meta(p["id"])
     print(f"carregado: VRAM {m.get('vram_base_gib')} -> {m.get('vram_carregado_gib')} GiB em {a.segundos}s")
     vram_total = config.hardware()["gpu"].get("vram_gib", 16)
@@ -258,7 +259,9 @@ def cmd_pacote(a) -> int:
 
 def cmd_pontuar(a) -> int:
     from .pontuacao import calcular, relatorio_md
+    from .selecao import resumo
     d = config.dir_modelo(a.modelo)
+    config.salvar_meta(a.modelo, rodada=resumo(_selecao()))  # o placar segue a seleção vigente
     p = calcular(d)
     (d / "placar.json").write_text(json.dumps(p, indent=2, ensure_ascii=False))
     (d / "relatorio.md").write_text(relatorio_md(p), encoding="utf-8")
@@ -433,6 +436,21 @@ def cmd_novo_perfil(a) -> int:
     return 0
 
 
+def cmd_proximo(a) -> int:
+    from . import plano
+    acao = plano.proximo()
+    if a.json:
+        print(json.dumps({**acao, "progresso": plano.progresso()}, ensure_ascii=False, indent=2))
+    else:
+        print(plano.texto(acao, plano.progresso(), _selecao()["nome"]))
+    return 0
+
+
+def cmd_piloto(a) -> int:
+    from . import piloto
+    return piloto.rodar(a.max_passos)
+
+
 def cmd_validar(a) -> int:
     from .agente import carregar_cenarios
     from .suites import todas
@@ -484,6 +502,10 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("perfil", nargs="?")
     sp.add_argument("--tps", type=float)
     add("validar", cmd_validar, ajuda="valida suítes e seleção")
+    sp = add("proximo", cmd_proximo, ajuda="diz exatamente o próximo passo da série (comece por aqui)")
+    sp.add_argument("--json", action="store_true", help="saída em JSON para máquina")
+    sp = add("piloto", cmd_piloto, ajuda="executa sozinho os passos mecânicos até precisar do agente")
+    sp.add_argument("--max-passos", type=int, default=200)
     sp = add("rodada", cmd_rodada, ajuda="mostra a seleção efetiva e as rodadas disponíveis")
     sp.add_argument("--nome", action="store_true", help="só o nome da rodada")
     sp = add("escolher", cmd_escolher, ajuda="escolhe a rodada (interativo ou direto)")
